@@ -1,20 +1,21 @@
 <?php
-include '../db_connect.php'; // Include the database connection
+include '../db_connect.php';
 
-// Fetch the count of users
+
 $user_count_query = "SELECT COUNT(*) AS user_count FROM users";
 $user_count_result = $conn->query($user_count_query);
 $user_count = $user_count_result->fetch_assoc()['user_count'];
 
-// Fetch the count of vehicles
+
 $vehicle_count_query = "SELECT COUNT(*) AS vehicle_count FROM vehicles";
 $vehicle_count_result = $conn->query($vehicle_count_query);
 $vehicle_count = $vehicle_count_result->fetch_assoc()['vehicle_count'];
 
-// Fetch the count of bookings
-$booking_count_query = "SELECT COUNT(*) AS booking_count FROM bookings";
-$booking_count_result = $conn->query($booking_count_query);
-$booking_count = $booking_count_result->fetch_assoc()['booking_count'];
+$slot_count_query = "SELECT COUNT(*) AS slot_count FROM parkingslots";
+$slot_count_result = $conn->query($slot_count_query);
+$slot_count = $slot_count_result->fetch_assoc()['slot_count'];
+
+
 
 ?>
 
@@ -39,24 +40,24 @@ $booking_count = $booking_count_result->fetch_assoc()['booking_count'];
                 </a>
             </li>
             <li class="nav-item">
-                <a href="users.php">
+                <a href="user.php">
                     <i class="la la-user"></i>
                     <p>Users</p>
                     <span class="badge badge-count"><?php echo $user_count; ?></span>
                 </a>
             </li>
             <li class="nav-item">
-                <a href="vehicles.php">
+                <a href="vehicle.php">
                     <i class="la la-car"></i>
-                    <p>Vehicles</p>
+                    <p>Vehicle</p>
                     <span class="badge badge-count"><?php echo $vehicle_count; ?></span>
                 </a>
             </li>
             <li class="nav-item">
-                <a href="parking_slots.php">
+                <a href="parking_slot.php">
                     <i class="la la-calendar-check-o"></i>
-                    <p>Bookings</p>
-                    <span class="badge badge-count"><?php echo $booking_count; ?></span>
+                    <p>Slot</p>
+                    <span class="badge badge-count"><?php echo $slot_count; ?></span>
                 </a>
             </li>
         </ul>

@@ -1,9 +1,8 @@
 <?php
+session_start();  // Start session at the beginning
 include '../db_connect.php';
 include 'header.php'; 
 include 'nav.php';
-
-session_start(); // Ensure session is started
 
 $message = '';
 $slot_number = '';
@@ -52,8 +51,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             if ($stmt->execute()) {
                 $_SESSION['message'] = "Slot updated successfully.";
-                header("Location: parking_slot.php");
-                exit(); // Exit to prevent further code execution
+                echo "<script>window.location.href='parking_slot.php';</script>";
+                exit();
             } else {
                 $message = "Error updating slot: " . $conn->error;
             }
@@ -66,8 +65,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             if ($stmt->execute()) {
                 $_SESSION['message'] = "Slot added successfully.";
-                header("Location: parking_slot.php");
-                exit(); // Exit to prevent further code execution
+                echo "<script>window.location.href='parking_slot.php';</script>";
+                exit();
             } else {
                 $message = "Error adding slot: " . $conn->error;
             }

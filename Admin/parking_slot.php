@@ -85,7 +85,7 @@ $result = $conn->query($sql);
                                                 <td><?php echo htmlspecialchars($row['Status']); ?></td>
                                                 <td>
                                                     <a href="parking_slot_creation.php?id=<?php echo htmlspecialchars($row['slot_id']); ?>" class="btn btn-warning btn-sm">Edit</a>
-                                                    <a href="class.php?delete=<?php echo htmlspecialchars($row['slot_id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this class?');">Delete</a>
+                                                    <a href="parking_slot_creation.php?delete=<?php echo htmlspecialchars($row['slot_id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this class?');">Delete</a>
                                                 </td>
                                             </tr>
                                         <?php endwhile; ?>

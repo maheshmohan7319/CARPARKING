@@ -43,7 +43,6 @@ $admin_id = $_SESSION['username'];
                                 <div class="u-text">
                                     <h4><?php echo htmlspecialchars($admin_id); ?></h4>
                                     <p class="text-muted">Admin</p>
-                                    <a href="profile.php" class="btn btn-rounded btn-danger btn-sm">View Profile</a>
                                 </div>
                             </div>
                         </li>

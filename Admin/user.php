@@ -3,6 +3,10 @@ include '../db_connect.php';
 include 'header.php'; 
 include 'nav.php';
 
+session_start(); // Ensure the session is started
+
+$logged_in_user_id = $_SESSION['user_id']; 
+
 $message = '';
 if (isset($_SESSION['message'])) {
     $message = $_SESSION['message'];
@@ -28,7 +32,7 @@ if (isset($_GET['delete'])) {
     exit();
 }
 
-$sql = "SELECT * FROM users";
+$sql = "SELECT * FROM users WHERE user_id != ?";
 $result = $conn->query($sql);
 ?>
 <!DOCTYPE html>

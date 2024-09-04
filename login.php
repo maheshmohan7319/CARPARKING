@@ -5,27 +5,37 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-  
+    // Fetch user data from the users table
     $stmt = $conn->prepare("SELECT user_id, username, password, role FROM users WHERE username = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
 
-   
     if ($result->num_rows > 0) {
         $user = $result->fetch_assoc();
 
-
+        // Verify the password
         if (password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['user_id']; 
             $_SESSION['role'] = $user['role'];
             $_SESSION['username'] = $user['username'];
 
+            // Fetch the vehicle_id associated with the user from the vehicles table
+            $vehicle_stmt = $conn->prepare("SELECT vehicle_id FROM vehicles WHERE user_id = ?");
+            $vehicle_stmt->bind_param("i", $user['user_id']);
+            $vehicle_stmt->execute();
+            $vehicle_result = $vehicle_stmt->get_result();
+
+            if ($vehicle_result->num_rows > 0) {
+                $vehicle = $vehicle_result->fetch_assoc();
+                $_SESSION['vehicle_id'] = $vehicle['vehicle_id']; // Store vehicle_id in session
+            }
+
+            // Redirect based on user role
             if ($user['role'] == 'admin') {
                 header("Location: admin/admin_dashboard.php");
                 exit();
@@ -40,7 +50,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error = "User not found!";
     }
 
-  
+    // Close statement and connection
     $stmt->close();
     $conn->close();
 }

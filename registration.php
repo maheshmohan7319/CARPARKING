@@ -84,7 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <section class="vh-100" style="background-image: url('https://png.pngtree.com/thumb_back/fw800/background/20230902/pngtree-cars-parked-in-an-underground-parking-garage-with-yellow-image_13136555.jpg'); background-size: cover; background-position: center;">
       <div class="container py-5 h-100">
         <div class="row d-flex justify-content-center align-items-center h-100">
-          <div class="col col-xl-6">
+          <div class="col col-xl-10">
             <div class="card" style="border-radius: 1rem;">      
                   <div class="card-body p-4 p-lg-5 text-black">
                     <form method="POST" action="registration.php">
@@ -95,39 +95,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                       <h5 class="fw-normal mb-3 pb-3" style="letter-spacing: 1px;">Sign into your account</h5>
 
-                      <div class="form-outline mb-4">
+                      <div class="row col-12">
+                      <div class="col-6 form-outline mb-4">
                         <label class="form-label" for="form2Example17">Vehicle Number*</label>
                         <input type="text" id="form2Example17" name="vehicle_number" class="form-control form-control-lg" required />
                       </div>
 
-                      <div class="form-outline mb-4">
-                            <label for="vehicle_type" class="form-label">Vehicle Type</label>
+                      <div class="col-6 form-outline mb-4">
+                            <label for="vehicle_type" class="form-label">Vehicle Type*</label>
                             <select name="vehicle_type" id="vehicle_type" class="form-select" required>
                                 <option value="select">Select Vehicle Type</option>
                                 <option value="car">Car</option>
                                 <option value="bike">Bike</option>
                             </select>
                       </div>
+                      </div>
 
-                      <div class="form-outline mb-4">
+                      <div class="row col-12">
+                      <div class="col-6 form-outline mb-4">
                         <label class="form-label" for="form2Example17">Email*</label>
                         <input type="email" id="form2Example17" name="email" class="form-control form-control-lg" required />
                       </div>
 
-                      <div class="form-outline mb-4">
+                      <div class="col-6 form-outline mb-4">
                         <label class="form-label" for="form2Example17">Fullname*</label>
                         <input type="text" id="form2Example17" name="full_name" class="form-control form-control-lg" required />
+                      </div>
                       </div>
 
 
                       <div class="row col-12">
                       <div class="col-6 form-outline mb-4">
-                        <label class="form-label" for="form2Example27">Password</label>
+                        <label class="form-label" for="form2Example27">Password*</label>
                         <input type="password" id="form2Example27" name="password" class="form-control form-control-lg" required />
                       </div>
 
                       <div class="col-6 form-outline mb-4">
-                        <label class="form-label" for="form2Example27">Confirm Password</label>
+                        <label class="form-label" for="form2Example27">Confirm Password*</label>
                         <input type="password" id="form2Example27" name="confirm_password" class="form-control form-control-lg" required />
                       </div>
                       </div>
@@ -146,7 +150,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </form>
          
                     <div class="d-flex justify-content-center">
-                        <p class="text-center m-0">Don't have an account? <a href="login.php" class="btn btn-link">Login Now</a></p>
+                        <p class="text-center m-0">Already have an account? <a href="login.php" class="btn btn-link">Login Now</a></p>
                       </div>
                   </div>
                 </div>

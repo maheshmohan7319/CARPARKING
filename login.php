@@ -81,7 +81,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                       <h5 class="fw-normal mb-3 pb-3" style="letter-spacing: 1px;">Sign into your account</h5>
 
                       <div class="form-outline mb-4">
-                        <label class="form-label" for="form2Example17">Registration ID</label>
+                        <label class="form-label" for="form2Example17">Vehicle Number*</label>
                         <input type="text" id="form2Example17" name="email" class="form-control form-control-lg" required />
                       </div>
 

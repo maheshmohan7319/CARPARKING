@@ -1,6 +1,7 @@
 <?php
 include '../db_connect.php'; // Include your database connection file
 include 'nav.php'; 
+include 'header.php'; 
 session_start();
 
 // Check if the user is logged in and is an admin

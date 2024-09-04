@@ -13,14 +13,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Collect user details
-    $username = trim($_POST['vehicle_number']); // Vehicle number as username
+    $vehicle_number = trim($_POST['vehicle_number']); // Vehicle number as username
     $password = trim($_POST['password']);
     $email = trim($_POST['email']);
+    $full_name = trim($_POST['full_name']);
     $role = 'user'; // Role value
     $vehicle_type = $_POST['vehicle_type'];
 
     // Basic server-side validation
-    if (empty($password) || empty($email) || empty($role) || empty($username) || empty($vehicle_type)) {
+    if (empty($full_name) || empty($password) || empty($email) || empty($role) || empty($vehicle_number) || empty($vehicle_type)) {
         $error_message = "All fields are required!";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error_message = "Invalid email format!";
@@ -33,9 +34,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         try {
             // Insert user details
             $password_hash = password_hash($password, PASSWORD_BCRYPT); // Hash the password
-            $sql_user = "INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)";
+            $sql_user = "INSERT INTO users (username, full_name, password, email, role) VALUES (?, ?, ?, ?, ?)";
             $stmt_user = $conn->prepare($sql_user);
-            $stmt_user->bind_param("ssss", $username, $password_hash, $email, $role);
+            $stmt_user->bind_param("sssss", $vehicle_number, $full_name, $password_hash, $email, $role);
 
             if ($stmt_user->execute()) {
                 // Get the last inserted user_id
@@ -44,7 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // Insert vehicle details using the user_id
                 $sql_vehicle = "INSERT INTO vehicles (user_id, vehicle_number, vehicle_type) VALUES (?, ?, ?)";
                 $stmt_vehicle = $conn->prepare($sql_vehicle);
-                $stmt_vehicle->bind_param("iss", $user_id, $username, $vehicle_type);
+                $stmt_vehicle->bind_param("iss", $user_id, $vehicle_number, $vehicle_type);
 
                 if ($stmt_vehicle->execute()) {
                     // Commit transaction
@@ -112,6 +113,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <label class="form-label" for="form2Example17">Email*</label>
                         <input type="email" id="form2Example17" name="email" class="form-control form-control-lg" required />
                       </div>
+
+                      <div class="form-outline mb-4">
+                        <label class="form-label" for="form2Example17">Fullname*</label>
+                        <input type="text" id="form2Example17" name="full_name" class="form-control form-control-lg" required />
+                      </div>
+
 
                       <div class="row col-12">
                       <div class="col-6 form-outline mb-4">

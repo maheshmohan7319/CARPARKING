@@ -7,6 +7,8 @@ $message = '';
 if (isset($_SESSION['message'])) {
     $message = $_SESSION['message'];
     unset($_SESSION['message']); 
+    // Refresh the page after 2 seconds
+    header("Refresh: 2; URL=parking_slot.php");
 }
 
 if (isset($_GET['delete'])) {
@@ -72,6 +74,7 @@ $result = $conn->query($sql);
                                             <th>Slot Name</th>
                                             <th>Slot Type</th>
                                             <th>Status</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -82,10 +85,10 @@ $result = $conn->query($sql);
                                                 <td><?php echo $counter++; ?></td>
                                                 <td><?php echo htmlspecialchars($row['slot_number']); ?></td>
                                                 <td><?php echo htmlspecialchars($row['slot_type']); ?></td>
-                                                <td><?php echo htmlspecialchars($row['Status']); ?></td>
+                                                <td><?php echo htmlspecialchars($row['status']); ?></td>
                                                 <td>
                                                     <a href="parking_slot_creation.php?id=<?php echo htmlspecialchars($row['slot_id']); ?>" class="btn btn-warning btn-sm">Edit</a>
-                                                    <a href="parking_slot_creation.php?delete=<?php echo htmlspecialchars($row['slot_id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this class?');">Delete</a>
+                                                    <a href="parking_slot.php?delete=<?php echo htmlspecialchars($row['slot_id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this class?');">Delete</a>
                                                 </td>
                                             </tr>
                                         <?php endwhile; ?>
@@ -116,17 +119,5 @@ $result = $conn->query($sql);
     <script src="assets/js/plugin/chart-circle/circles.min.js"></script>
     <script src="assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
     <script src="assets/js/ready.min.js"></script>
-
-    <script>
-        // Hide message after 2 seconds
-        $(document).ready(function() {
-            var messageAlert = $('#messageAlert');
-            if (messageAlert.length) {
-                setTimeout(function() {
-                    messageAlert.alert('close');
-                }, 2000); // 2000 milliseconds = 2 seconds
-            }
-        });
-    </script>
 </body>
 </html>

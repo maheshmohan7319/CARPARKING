@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Get the admin's username
+// Get the admin's username and full name
 $admin_id = $_SESSION['username'];
 $full_name = $_SESSION['full_name'];
 ?>
@@ -20,6 +20,48 @@ $full_name = $_SESSION['full_name'];
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
     <link rel="stylesheet" href="assets/css/ready.css">
     <link rel="stylesheet" href="assets/css/demo.css">
+    <style>
+        .main-header {
+            background-color: #343a40; /* Dark background */
+            color: white;
+            padding: 15px 0;
+        }
+        .logo-header a {
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .navbar-nav .nav-link {
+            color: white;
+        }
+        .navbar-nav .nav-link:hover {
+            color: #ddd;
+        }
+        .profile-pic {
+            color: white;
+        }
+        .dropdown-menu {
+            background-color: #343a40;
+        }
+        .dropdown-item {
+            color: white;
+        }
+        .dropdown-item:hover {
+            background-color: #495057;
+        }
+        .custom-btn {
+            background-color: #f8f9fa;
+            border: none;
+            padding: 10px 15px;
+            font-weight: bold;
+            color: #343a40;
+            margin-right: 10px;
+            border-radius: 5px;
+        }
+        .custom-btn:hover {
+            background-color: #e9ecef;
+        }
+    </style>
 </head>
 <body>
 <div class="main-header">
@@ -31,7 +73,17 @@ $full_name = $_SESSION['full_name'];
         <button class="topbar-toggler more"><i class="la la-ellipsis-v"></i></button>
     </div>
     <nav class="navbar navbar-header navbar-expand-lg">
-        <div class="container-fluid">            
+        <div class="container-fluid">
+            <ul class="navbar-nav">
+                <!-- Home Button -->
+                <li class="nav-item">
+                    <a href="home.php" class="nav-link custom-btn">Home</a>
+                </li>
+                <!-- Reservation Button -->
+                <li class="nav-item">
+                    <a href="reservation.php" class="nav-link custom-btn">Reservation</a>
+                </li>
+            </ul>
             <ul class="navbar-nav topbar-nav ml-md-auto align-items-center">
                 <!-- Admin Profile Dropdown -->
                 <li class="nav-item dropdown">

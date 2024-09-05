@@ -1,6 +1,7 @@
 <?php
 include 'db_connect.php'; 
 
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -10,7 +11,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
 
     // Fetch user data from the users table
-    $stmt = $conn->prepare("SELECT user_id, username, password, role FROM users WHERE username = ?");
+    $stmt = $conn->prepare("SELECT user_id,full_name, username, password, role FROM users WHERE username = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -23,6 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['user_id'] = $user['user_id']; 
             $_SESSION['role'] = $user['role'];
             $_SESSION['username'] = $user['username'];
+            $_SESSION['full_name'] = $user['full_name'];
 
             // Fetch the vehicle_id associated with the user from the vehicles table
             $vehicle_stmt = $conn->prepare("SELECT vehicle_id FROM vehicles WHERE user_id = ?");
@@ -75,7 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <form method="POST" action="index.php">
                     <div class="d-flex align-items-center mb-3 pb-1">
                       <i class="fas fa-star fa-2x me-3" style="color: #ff6219;"></i> 
-                      <img src="admin/assets/img/logo.png" alt="Logo" style="height: 40px;">
+                      <img src="assets/img/logo.png" alt="Logo" style="height: 40px;">
                     </div>
 
                       <h5 class="fw-normal mb-3 pb-3" style="letter-spacing: 1px;">Sign into your account</h5>

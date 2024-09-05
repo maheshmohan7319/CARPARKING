@@ -6,7 +6,7 @@ if (isset($_SESSION['role'])) {
         header("Location: admin/admin_dashboard.php");
         exit();
     } else {
-        header("Location: homepage.php");
+        header("Location: user_dashboard.php");
         exit();
     }
 }

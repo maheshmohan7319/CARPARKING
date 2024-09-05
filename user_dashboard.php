@@ -1,6 +1,6 @@
 <?php
 include 'db_connect.php';  // Ensure this path is correct and db_connect.php sets up the $conn variable properly
-
+include 'user_header.php'; 
 // Initialize messages
 $message = "";
 
@@ -46,29 +46,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->close();
     }
 }
-// Handle Logout
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout'])) {
-    // Destroy session to log out
-    session_unset();
-    session_destroy();
-    
-    // Redirect to the login page or homepage after logout
-    header("Location: login.php"); // Replace 'login.php' with your login page
-    exit();
-}
+
+
 // Fetch parking slots data from the database
 $sql = "SELECT slot_id, slot_number, slot_type, status FROM ParkingSlots";
 $result = $conn->query($sql);
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parking Slot Booking</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+	<title>UserDashboard</title>
+	<meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
+	<link rel="stylesheet" href="assets/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
+	<link rel="stylesheet" href="assets/css/ready.css">
+	<link rel="stylesheet" href="assets/css/demo.css">
     <style>
         .available { background-color: #28a745; color: white; } /* Green for available slots */
         .occupied { background-color: #dc3545; color: white; }  /* Red for occupied slots */
@@ -76,31 +70,11 @@ $result = $conn->query($sql);
     </style>
 </head>
 <body>
-<div>
-   <nav class="navbar navbar-dark bg-dark border-bottom border-secondary">
-    <div class="container-fluid">
-        <a class="navbar-brand text-white font-weight-bold" href="#">
-            <img src="https://img.lovepik.com/free-png/20210923/lovepik-car-parking-sign-icon-free-vector-illustration-png-image_401277404_wh1200.png" 
-                 alt="Logo" width="40" height="40" class="d-inline-block align-text-top rounded-circle">
-            PARKING
-        </a>
-        <!-- Logout Button Form -->
-        <form method="POST" class="ml-auto">
-            <button type="submit" name="logout" class="btn btn-outline-light">Logout</button>
-        </form>
-    </div>
-</nav>
-</div>
-<div class="container mt-5">
-    <h2 class="mb-4">Select Parking Slot</h2>
-
-    <!-- Display message if booking is confirmed -->
-    <?php if (!empty($message)): ?>
-        <div class="alert alert-info"><?php echo $message; ?></div>
-    <?php endif; ?>
-
-    <!-- Display slots -->
-    <div class="row">
+	<div class="wrapper" style="padding-top: 30px;">
+			<div class="content ">
+				<div class="container-fluid">
+					<h4 class="page-title">Dashboard</h4>
+                    <div class="row">
         <?php if ($result->num_rows > 0): ?>
             <?php while ($row = $result->fetch_assoc()): ?>
                 <div class="col-md-3 mb-3">
@@ -121,47 +95,34 @@ $result = $conn->query($sql);
             <p>No slots available.</p>
         <?php endif; ?>
     </div>
-
-    <!-- Booking Form -->
-    <form id="bookingForm" method="POST" class="booking-form">
-        <input type="hidden" id="slot_id" name="slot_id">
-        <div class="mb-3">
-            <label for="slot_number_display" class="form-label">Slot Number</label>
-            <input type="text" id="slot_number_display" class="form-control" disabled>
-        </div>
-        <div class="mb-3">
-            <label for="start_time" class="form-label">Start Time</label>
-            <input type="time" id="start_time" name="start_time" class="form-control" required>
-        </div>
-        <div class="mb-3">
-            <label for="duration" class="form-label">Duration (in hours)</label>
-            <input type="number" id="duration" name="duration" class="form-control" min="1" max="24" required>
-        </div>
-        <button type="submit" name="book_slot" class="btn btn-primary">Confirm Booking</button>
-        <button type="button" class="btn btn-secondary" onclick="cancelBooking()">Cancel</button>
-    </form>
-</div>
-
-<script>
-    function selectSlot(slotId, slotNumber) {
-        document.getElementById('slot_id').value = slotId;
-        document.getElementById('slot_number_display').value = slotNumber;
-        document.getElementById('bookingForm').style.display = 'block';
-        window.scrollTo(0, document.body.scrollHeight);
-    }
-
-    function cancelBooking() {
-        document.getElementById('bookingForm').style.display = 'none';
-    }
-</script>
-
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+					<!-- Additional dashboard content can go here -->
+				</div>
+			</div>
+		
+	</div>
+	<footer class="footer bg-light">
+		<div class="container-fluid">
+			<nav class="pull-left">
+				<ul class="nav">
+					<li class="nav-item">
+						<a class="nav-link" href="#">
+							LIBRARY MANAGEMENT
+						</a>
+					</li>
+				</ul>
+			</nav>
+			<div class="ml-auto">
+				<span>2024, made with <i class="la la-heart heart text-danger"></i> by <a href="#">BSC Computer Science</a></span>
+			</div>
+		</div>
+	</footer>
 </body>
+<script src="assets/js/core/jquery.3.2.1.min.js"></script>
+<script src="assets/js/plugin/jquery-ui-1.12.1.custom/jquery-ui.min.js"></script>
+<script src="assets/js/core/popper.min.js"></script>
+<script src="assets/js/core/bootstrap.min.js"></script>
+<script src="assets/js/plugin/chart-circle/circles.min.js"></script>
+<script src="assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
+<script src="assets/js/ready.min.js"></script>
+<script src="assets/js/demo.js"></script>
 </html>
-
-<?php
-// Close the database connection
-$conn->close();
-?>

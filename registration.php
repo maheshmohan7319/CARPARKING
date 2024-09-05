@@ -90,7 +90,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <form method="POST" action="registration.php">
                     <div class="d-flex align-items-center mb-3 pb-1">
                       <i class="fas fa-star fa-2x me-3" style="color: #ff6219;"></i> 
-                      <img src="admin/assets/img/logo.png" alt="Logo" style="height: 40px;">
+                      <img src="assets/img/logo.png" alt="Logo" style="height: 40px;">
                     </div>
 
                       <h5 class="fw-normal mb-3 pb-3" style="letter-spacing: 1px;">Sign into your account</h5>

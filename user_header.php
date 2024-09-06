@@ -25,6 +25,7 @@ $full_name = $_SESSION['full_name'];
             background-color: #343a40; /* Dark background */
             color: white;
             padding: 15px 0;
+            position: relative;
         }
         .logo-header a {
             color: white;

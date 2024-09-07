@@ -34,44 +34,56 @@ $result = $stmt->get_result();
         .status-badge {
             color: black !important; /* Set text color to black */
         }
+        .table-container {
+            background-color: #f8f9fa; /* Light grey background for the table container */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+        }
+        .table th {
+            background-color: #023C6E; /* Dark blue background for the header */
+            color: white; /* White text for the header */
+        }
     </style>
 </head>
 <body>
     <div class="container mt-5">
-        <h2>Your Booking Status</h2>
-        <?php if ($result->num_rows > 0): ?>
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Booking ID</th>
-                        <th>Booking Date</th>
-                        <th>Start Time</th>
-                        <th>End Time</th>
-                        <th>Slot Number</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php while ($row = $result->fetch_assoc()): ?>
+        <div class="table-container">
+            <h2 class="mb-4">Your Booking Status</h2>
+            <?php if ($result->num_rows > 0): ?>
+                <table class="table table-striped table-hover table-bordered">
+                    <thead>
                         <tr>
-                            <td><?php echo htmlspecialchars($row['booking_id']); ?></td>
-                            <td><?php echo htmlspecialchars($row['booking_date']); ?></td>
-                            <td><?php echo htmlspecialchars($row['start_time']); ?></td>
-                            <td><?php echo htmlspecialchars($row['end_time']); ?></td>
-                            <td><?php echo htmlspecialchars($row['slot_number']); ?></td>
-                            <td>
-                                <span class="badge status-badge 
-                                    <?php echo $row['status'] == 'completed' ? 'badge-success' : ($row['status'] == 'cancelled' ? 'badge-danger' : 'badge-warning'); ?>">
-                                    <?php echo htmlspecialchars($row['status']); ?>
-                                </span>
-                            </td>
+                            <th>Booking ID</th>
+                            <th>Booking Date</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Slot Number</th>
+                            <th>Status</th>
                         </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
-        <?php else: ?>
-            <div class="alert alert-info">You have no bookings currently.</div>
-        <?php endif; ?>
+                    </thead>
+                    <tbody>
+                        <?php while ($row = $result->fetch_assoc()): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($row['booking_id']); ?></td>
+                                <td><?php echo htmlspecialchars($row['booking_date']); ?></td>
+                                <td><?php echo htmlspecialchars($row['start_time']); ?></td>
+                                <td><?php echo htmlspecialchars($row['end_time']); ?></td>
+                                <td><?php echo htmlspecialchars($row['slot_number']); ?></td>
+                                <td>
+                                    <span class="badge status-badge 
+                                        <?php echo $row['status'] == 'completed' ? 'badge-success' : ($row['status'] == 'cancelled' ? 'badge-danger' : 'badge-warning'); ?>">
+                                        <?php echo htmlspecialchars($row['status']); ?>
+                                    </span>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+            <?php else: ?>
+                <div class="alert alert-info">You have no bookings currently.</div>
+            <?php endif; ?>
+        </div>
     </div>
 
     <!-- Include Bootstrap JS and dependencies -->

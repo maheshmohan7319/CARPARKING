@@ -4,6 +4,7 @@ include 'header.php';
 session_start();
 
 $message = "";
+$toast_class = "toast-success"; // Default to green success toast
 
 // Ensure user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -21,40 +22,56 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Handle booking form submission
     if (isset($_POST['book_slot'])) {
-        $slot_id = intval($_POST['slot_id']);
-        $start_time = $_POST['start_time'];
-        $duration = intval($_POST['duration']);
-        $end_time = date('H:i:s', strtotime("+$duration hours", strtotime($start_time)));     
+        // Check if user already has an active booking
+        $sql_check_booking = "SELECT * FROM Bookings WHERE user_id = ? AND status != 'completed'";
+        $stmt_check = $conn->prepare($sql_check_booking);
+        $stmt_check->bind_param("i", $user_id);
+        $stmt_check->execute();
+        $result_check = $stmt_check->get_result();
 
-        // Calculate total price (20 Rupees per hour)
-        $total_price = $duration * 20;
+        if ($result_check->num_rows > 0) {
+            // User already has an active booking
+            $message = "You already have an active booking. Please complete it before booking another slot.";
+            $toast_class = "toast-danger"; // Change to red danger toast
+        } else {
+            // Proceed with new booking
+            $slot_id = intval($_POST['slot_id']);
+            $start_time = $_POST['start_time'];
+            $duration = intval($_POST['duration']);
+            $end_time = date('H:i:s', strtotime("+$duration hours", strtotime($start_time)));     
 
-        // Update slot status to 'occupied'
-        $sql_update_slot = "UPDATE ParkingSlots SET status = 'occupied' WHERE slot_id = ?";
-        $stmt = $conn->prepare($sql_update_slot);
-        $stmt->bind_param("i", $slot_id);
+            // Calculate total price (20 Rupees per hour)
+            $total_price = $duration * 20;
 
-        if ($stmt->execute()) {
-            // Insert booking record
-            $sql_insert_booking = "INSERT INTO Bookings (user_id, vehicle_id, slot_id, booking_date, start_time, end_time, status, created_at) VALUES (?, ?, ?, CURDATE(), ?, ?, 'booked', NOW())";
-            $stmt_booking = $conn->prepare($sql_insert_booking);
-            $stmt_booking->bind_param("iiiss", $user_id, $vehicle_id, $slot_id, $start_time, $end_time);
+            // Update slot status to 'occupied'
+            $sql_update_slot = "UPDATE ParkingSlots SET status = 'occupied' WHERE slot_id = ?";
+            $stmt = $conn->prepare($sql_update_slot);
+            $stmt->bind_param("i", $slot_id);
 
-            if ($stmt_booking->execute()) {
-                $message = "Booking confirmed! Total price: ₹" . $total_price . ".";
+            if ($stmt->execute()) {
+                // Insert booking record
+                $sql_insert_booking = "INSERT INTO Bookings (user_id, vehicle_id, slot_id, booking_date, start_time, end_time, status, created_at) VALUES (?, ?, ?, CURDATE(), ?, ?, 'booked', NOW())";
+                $stmt_booking = $conn->prepare($sql_insert_booking);
+                $stmt_booking->bind_param("iiiss", $user_id, $vehicle_id, $slot_id, $start_time, $end_time);
+
+                if ($stmt_booking->execute()) {
+                    $message = "Booking confirmed! Total price: ₹" . $total_price . ".";
+                    $toast_class = "toast-success"; // Green success toast
+                } else {
+                    $message = "Error booking slot: " . $stmt_booking->error;
+                }
+
+                $stmt_booking->close();
             } else {
-                $message = "Error booking slot: " . $stmt_booking->error;
+                $message = "Error updating slot status: " . $stmt->error;
             }
 
-            $stmt_booking->close();
-        } else {
-            $message = "Error updating slot status: " . $stmt->error;
+            $stmt->close();
         }
 
-        $stmt->close();
+        $stmt_check->close();
     }
 }
-
 
 // Fetch parking slots data from the database
 $sql = "SELECT slot_id, slot_number, slot_type, status FROM ParkingSlots";
@@ -70,7 +87,7 @@ $result = $conn->query($sql);
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
     <style>
-        .body{
+        .body {
             background-color: #d4edda;
         }
         .available {
@@ -103,35 +120,43 @@ $result = $conn->query($sql);
             border-color: #022f5e;
         }
         .toast-container {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 1050; 
-    }
-    .toast {
-        min-width: 300px; 
-        background-color: #d4edda; 
-        color: #155724; 
-        border: 1px solid #c3e6cb; 
-    }
-    .toast-header {
-        background-color: #28a745; 
-        color: white; 
-    }
-    .toast-body {
-        color: #155724; 
-    }
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050; 
+        }
+        .toast-success {
+            min-width: 300px; 
+            background-color: #d4edda; 
+            color: #155724; 
+            border: 1px solid #c3e6cb; 
+        }
+        .toast-danger {
+            min-width: 300px; 
+            background-color: #f8d7da; 
+            color: #721c24; 
+            border: 1px solid #f5c6cb; 
+        }
+        .toast-header {
+            color: white; 
+        }
+        .toast-header.success-header {
+            background-color: #28a745;
+        }
+        .toast-header.danger-header {
+            background-color: #dc3545;
+        }
     </style>
 </head>
 <body>
-<div class="container mt-4 ">
-<div class="col-md-6 text-center mb-5">
-    <h2 class="heading-section">Select Parking Slot</h2>
-</div>
+<div class="container mt-4">
+    <div class="col-md-6 text-center mb-5">
+        <h2 class="heading-section">Select Parking Slot</h2>
+    </div>
 
     <div class="toast-container">
-        <div id="successToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
-            <div class="toast-header">
+        <div id="notificationToast" class="toast <?php echo $toast_class; ?>" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
+            <div class="toast-header <?php echo $toast_class === 'toast-success' ? 'success-header' : 'danger-header'; ?>">
                 <strong class="me-auto">Notification</strong>
                 <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -145,7 +170,6 @@ $result = $conn->query($sql);
         </div>
     </div>
 
-
     <div class="row">
         <?php if ($result->num_rows > 0): ?>
             <?php while ($row = $result->fetch_assoc()): ?>
@@ -155,11 +179,7 @@ $result = $conn->query($sql);
                             <h5 class="card-title">Slot <?php echo htmlspecialchars($row['slot_number']); ?></h5>
                             <p class="card-text">Type: <?php echo htmlspecialchars($row['slot_type']); ?></p>
                             <?php if ($row['status'] == 'available'): ?>
-                               
-                        <button class="btn btn-dark btn-sm" onclick="selectSlot(<?php echo $row['slot_id']; ?>, '<?php echo $row['slot_number']; ?>')" data-toggle="modal" data-target="#bookingModal" >Book Now</button>
-                  
-
-                                <!-- <button class="btn btn-dark btn-sm" onclick="selectSlot(<?php echo $row['slot_id']; ?>, '<?php echo $row['slot_number']; ?>')" data-toggle="modal" data-target="#bookingModal">Book Now</button> -->
+                                <button class="btn btn-dark btn-sm" onclick="selectSlot(<?php echo $row['slot_id']; ?>, '<?php echo $row['slot_number']; ?>')" data-toggle="modal" data-target="#bookingModal">Book Now</button>
                             <?php else: ?>
                                 <button class="btn btn-secondary btn-sm" disabled>Occupied</button>
                             <?php endif; ?>
@@ -172,7 +192,6 @@ $result = $conn->query($sql);
         <?php endif; ?>
     </div>
 
-  
     <div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -199,8 +218,8 @@ $result = $conn->query($sql);
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" name="book_slot" class="btn btn-primary">Confirm Booking</button>
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" name="book_slot">Confirm Booking</button>
                     </div>
                 </form>
             </div>
@@ -216,7 +235,7 @@ $result = $conn->query($sql);
 
     document.addEventListener('DOMContentLoaded', function () {
         if ("<?php echo $message; ?>".trim() !== "") {
-            var toastElement = document.getElementById('successToast');
+            var toastElement = document.getElementById('notificationToast');
             var toast = new bootstrap.Toast(toastElement);
             toast.show();
         }
@@ -224,11 +243,7 @@ $result = $conn->query($sql);
 </script>
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
-
-<?php
-$conn->close();
-?>

@@ -20,7 +20,6 @@ $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
-
 ?>
 
 <!DOCTYPE html>
@@ -31,6 +30,11 @@ $result = $stmt->get_result();
     <title>User Booking Status</title>
     <!-- Include Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .status-badge {
+            color: black !important; /* Set text color to black */
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-5">
@@ -56,8 +60,8 @@ $result = $stmt->get_result();
                             <td><?php echo htmlspecialchars($row['end_time']); ?></td>
                             <td><?php echo htmlspecialchars($row['slot_number']); ?></td>
                             <td>
-                                <span class="badge 
-                                    <?php echo $row['status'] == 'confirmed' ? 'badge-success' : ($row['status'] == 'cancelled' ? 'badge-danger' : 'badge-warning'); ?>">
+                                <span class="badge status-badge 
+                                    <?php echo $row['status'] == 'completed' ? 'badge-success' : ($row['status'] == 'cancelled' ? 'badge-danger' : 'badge-warning'); ?>">
                                     <?php echo htmlspecialchars($row['status']); ?>
                                 </span>
                             </td>

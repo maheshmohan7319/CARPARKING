@@ -31,9 +31,10 @@ $result = $stmt->get_result();
     <!-- Include Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
-        .status-badge {
-            color: black !important; /* Set text color to black */
-        }
+     .status-badge {
+    color: white !important; /* Set text color to white */
+}
+
         .table-container {
             background-color: #f8f9fa; /* Light grey background for the table container */
             padding: 20px;

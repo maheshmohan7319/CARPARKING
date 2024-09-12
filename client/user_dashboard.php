@@ -22,14 +22,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Handle booking form submission
     if (isset($_POST['book_slot'])) {
-        // Check if user already has an active booking
-        $sql_check_booking = "SELECT * FROM Bookings WHERE user_id = ? AND status != 'completed'";
+        // Check if user already has an active or cancelled booking
+        $sql_check_booking = "SELECT * FROM Bookings WHERE user_id = ? AND (status = 'booked' OR status = 'cancelled')";
         $stmt_check = $conn->prepare($sql_check_booking);
         $stmt_check->bind_param("i", $user_id);
         $stmt_check->execute();
         $result_check = $stmt_check->get_result();
 
+        // Check if user has an active booking
+        $has_active_booking = false;
         if ($result_check->num_rows > 0) {
+            while ($row = $result_check->fetch_assoc()) {
+                if ($row['status'] == 'booked') {
+                    $has_active_booking = true;
+                    break;
+                }
+            }
+        }
+
+        if ($has_active_booking) {
             // User already has an active booking
             $message = "You already have an active booking. Please complete it before booking another slot.";
             $toast_class = "toast-danger"; // Change to red danger toast
@@ -213,13 +224,13 @@ $result = $conn->query($sql);
                             <input type="time" id="start_time" name="start_time" class="form-control" required>
                         </div>
                         <div class="mb-3">
-                            <label for="duration" class="form-label">Duration (in hours)</label>
-                            <input type="number" id="duration" name="duration" class="form-control" min="1" max="24" required>
+                            <label for="duration" class="form-label">Duration (hours)</label>
+                            <input type="number" id="duration" name="duration" class="form-control" min="1" required>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary" name="book_slot">Confirm Booking</button>
+                        <button type="submit" name="book_slot" class="btn btn-primary">Book Slot</button>
                     </div>
                 </form>
             </div>
@@ -227,23 +238,22 @@ $result = $conn->query($sql);
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
     function selectSlot(slotId, slotNumber) {
         document.getElementById('slot_id').value = slotId;
         document.getElementById('slot_number_display').value = slotNumber;
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
-        if ("<?php echo $message; ?>".trim() !== "") {
-            var toastElement = document.getElementById('notificationToast');
-            var toast = new bootstrap.Toast(toastElement);
-            toast.show();
-        }
+    $(document).ready(function() {
+        $('.toast').toast('show');
     });
 </script>
-
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
+
+<?php
+$conn->close();
+?>

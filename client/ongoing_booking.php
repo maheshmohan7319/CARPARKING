@@ -3,8 +3,19 @@ include '../db_connect.php';
 include 'header.php';
 session_start();
 
-$message = "";
-$toast_class = "toast-success"; // Default to green success toast
+// Default toast class
+$toast_class = "toast-success"; 
+
+// Check if there's a session message
+if (isset($_SESSION['message'])) {
+    $message = $_SESSION['message'];
+    $toast_class = $_SESSION['toast_class'] ?? "toast-success";
+    // Unset the session message after displaying it once
+    unset($_SESSION['message']);
+    unset($_SESSION['toast_class']);
+} else {
+    $message = ""; // No message by default
+}
 
 // Ensure user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -23,48 +34,61 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (isset($_POST['cancel_booking'])) {
         $booking_id = intval($_POST['booking_id']);
         $slot_id = intval($_POST['slot_id']);
+        $current_time = new DateTime(); // Get current time
+        $start_time = new DateTime($current_booking['start_time']); // Get booking start time
 
-        // Begin a transaction
-        $conn->begin_transaction();
-        try {
-            // Update booking status to 'canceled'
-            $sql_cancel_booking = "UPDATE Bookings SET status = 'canceled' WHERE booking_id = ? AND user_id = ?";
-            $stmt_cancel = $conn->prepare($sql_cancel_booking);
-            $stmt_cancel->bind_param("ii", $booking_id, $user_id);
-            $stmt_cancel->execute();
+        // Check if the booking can be canceled (before 2 hours of start time)
+        $interval = $start_time->diff($current_time);
+        if ($interval->h < 2) {
+            // Begin a transaction
+            $conn->begin_transaction();
+            try {
+                // Update booking status to 'canceled'
+                $sql_cancel_booking = "UPDATE Bookings SET status = 'canceled' WHERE booking_id = ? AND user_id = ?";
+                $stmt_cancel = $conn->prepare($sql_cancel_booking);
+                $stmt_cancel->bind_param("ii", $booking_id, $user_id);
+                $stmt_cancel->execute();
 
-            // Check if booking was successfully updated
-            if ($stmt_cancel->affected_rows === 0) {
-                throw new Exception("Failed to cancel the booking. It may not exist or you may not have permission.");
+                // Check if booking was successfully updated
+                if ($stmt_cancel->affected_rows === 0) {
+                    throw new Exception("Failed to cancel the booking. It may not exist or you may not have permission.");
+                }
+
+                // Free up the parking slot
+                $sql_free_slot = "UPDATE ParkingSlots SET status = 'available' WHERE slot_id = ?";
+                $stmt_free_slot = $conn->prepare($sql_free_slot);
+                $stmt_free_slot->bind_param("i", $slot_id);
+                $stmt_free_slot->execute();
+
+                // Commit the transaction
+                $conn->commit();
+
+                // Set the session message for successful cancellation
+                $_SESSION['message'] = "Booking canceled successfully. You can now book another slot.";
+                $_SESSION['toast_class'] = "toast-success";
+            } catch (Exception $e) {
+                // Rollback the transaction in case of error
+                $conn->rollback();
+                // Set the session message for error
+                $_SESSION['message'] = "Error canceling booking: " . $e->getMessage();
+                $_SESSION['toast_class'] = "toast-danger";
             }
 
-            // Free up the parking slot
-            $sql_free_slot = "UPDATE ParkingSlots SET status = 'available' WHERE slot_id = ?";
-            $stmt_free_slot = $conn->prepare($sql_free_slot);
-            $stmt_free_slot->bind_param("i", $slot_id);
-            $stmt_free_slot->execute();
+            // Close statements
+            $stmt_cancel->close();
+            $stmt_free_slot->close();
 
-            // Check if slot was successfully updated
-            if ($stmt_free_slot->affected_rows === 0) {
-                throw new Exception("Failed to update the slot status.");
-            }
-
-            // Commit the transaction
-            $conn->commit();
-
-            $message = "Booking canceled successfully. You can now book another slot.";
-            $toast_class = "toast-success"; // Green success toast
-        } catch (Exception $e) {
-            // Rollback the transaction in case of error
-            $conn->rollback();
-
-            $message = "Error canceling booking: " . $e->getMessage();
-            $toast_class = "toast-danger";
+            // Redirect to avoid form re-submission
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit();
+        } else {
+            // Set session message for invalid cancel attempt
+            $_SESSION['message'] = "You can only cancel a booking at least 2 hours before the start time.";
+            $_SESSION['toast_class'] = "toast-danger";
+            // Redirect to avoid form re-submission
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit();
         }
-
-        // Close statements
-        $stmt_cancel->close();
-        $stmt_free_slot->close();
     }
 }
 
@@ -76,7 +100,6 @@ $stmt_user_booking->execute();
 $result_user_booking = $stmt_user_booking->get_result();
 $current_booking = $result_user_booking->fetch_assoc();
 $stmt_user_booking->close();
-
 ?>
 
 <!DOCTYPE html>
@@ -93,18 +116,6 @@ $stmt_user_booking->close();
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 20px;
-        }
-        .modal-header {
-            background-color: #cb5050;
-            color: white;
-        }
-        .btn-primary {
-            background-color: #023C6E;
-            border-color: #023C6E;
-        }
-        .btn-primary:hover {
-            background-color: #022f5e;
-            border-color: #022f5e;
         }
         .toast-container {
             position: fixed;
@@ -138,21 +149,21 @@ $stmt_user_booking->close();
         <h2 class="heading-section">Ongoing Booking Status</h2>
     </div>
 
-    <div class="toast-container">
-        <div id="notificationToast" class="toast <?php echo $toast_class; ?>" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
-            <div class="toast-header <?php echo $toast_class === 'toast-success' ? 'success-header' : 'danger-header'; ?>">
-                <strong class="me-auto">Notification</strong>
-                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="toast-body">
-                <?php if (!empty($message)): ?>
+    <?php if (!empty($message)): ?>
+        <div class="toast-container">
+            <div id="notificationToast" class="toast <?php echo $toast_class; ?>" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
+                <div class="toast-header <?php echo $toast_class === 'toast-success' ? 'success-header' : 'danger-header'; ?>">
+                    <strong class="me-auto">Notification</strong>
+                    <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="toast-body">
                     <?php echo $message; ?>
-                <?php endif; ?>
+                </div>
             </div>
         </div>
-    </div>
+    <?php endif; ?>
 
     <?php if (!empty($current_booking)): ?>
         <div class="booking-card">
@@ -177,7 +188,9 @@ $stmt_user_booking->close();
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
     $(document).ready(function(){
-        $('.toast').toast('show');
+        <?php if (!empty($message)): ?>
+            $('.toast').toast('show');
+        <?php endif; ?>
     });
 </script>
 </body>

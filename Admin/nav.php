@@ -60,6 +60,13 @@ $slot_count = $slot_count_result->fetch_assoc()['slot_count'];
                     <span class="badge badge-count"><?php echo $slot_count; ?></span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="bookings.php">
+                    <i class="la la-calendar-check-o"></i>
+                    <p>bookings</p>
+                    <span class="badge badge-count"><?php echo $slot_count; ?></span>
+                </a>
+            </li>
         </ul>
     </div>
 </div>

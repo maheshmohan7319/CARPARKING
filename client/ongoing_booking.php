@@ -25,70 +25,71 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['confirm_cancel'])) {
     if (!isset($conn) || $conn == null) {
         die("Database connection failed. Please check your database configuration.");
     }
 
     // Handle cancellation form submission
-    if (isset($_POST['cancel_booking'])) {
-        $booking_id = intval($_POST['booking_id']);
-        $slot_id = intval($_POST['slot_id']);
-        $current_time = new DateTime(); // Get current time
-        $start_time = new DateTime($current_booking['start_time']); // Get booking start time
+    $booking_id = intval($_POST['booking_id']);
+    $slot_id = intval($_POST['slot_id']);
+    $current_time = new DateTime(); // Get current time
+    $start_time = new DateTime($_POST['start_time']); // Get booking start time
 
-        // Check if the booking can be canceled (before 2 hours of start time)
-        $interval = $start_time->diff($current_time);
-        if ($interval->h < 2) {
-            // Begin a transaction
-            $conn->begin_transaction();
-            try {
-                // Update booking status to 'canceled'
-                $sql_cancel_booking = "UPDATE Bookings SET status = 'canceled' WHERE booking_id = ? AND user_id = ?";
-                $stmt_cancel = $conn->prepare($sql_cancel_booking);
-                $stmt_cancel->bind_param("ii", $booking_id, $user_id);
-                $stmt_cancel->execute();
+    // Calculate the interval in minutes
+    $interval = $start_time->getTimestamp() - $current_time->getTimestamp();
+    $minutes_before_start = $interval / 60;
 
-                // Check if booking was successfully updated
-                if ($stmt_cancel->affected_rows === 0) {
-                    throw new Exception("Failed to cancel the booking. It may not exist or you may not have permission.");
-                }
+    // Check if the booking can be canceled (at least 1 hour before the start time)
+    if ($minutes_before_start >= 60) {  // Allow cancellation if it's at least 60 minutes before the start time
+        // Begin a transaction
+        $conn->begin_transaction();
+        try {
+            // Update booking status to 'canceled'
+            $sql_cancel_booking = "UPDATE Bookings SET status = 'canceled' WHERE booking_id = ? AND user_id = ?";
+            $stmt_cancel = $conn->prepare($sql_cancel_booking);
+            $stmt_cancel->bind_param("ii", $booking_id, $user_id);
+            $stmt_cancel->execute();
 
-                // Free up the parking slot
-                $sql_free_slot = "UPDATE ParkingSlots SET status = 'available' WHERE slot_id = ?";
-                $stmt_free_slot = $conn->prepare($sql_free_slot);
-                $stmt_free_slot->bind_param("i", $slot_id);
-                $stmt_free_slot->execute();
-
-                // Commit the transaction
-                $conn->commit();
-
-                // Set the session message for successful cancellation
-                $_SESSION['message'] = "Booking canceled successfully. You can now book another slot.";
-                $_SESSION['toast_class'] = "toast-success";
-            } catch (Exception $e) {
-                // Rollback the transaction in case of error
-                $conn->rollback();
-                // Set the session message for error
-                $_SESSION['message'] = "Error canceling booking: " . $e->getMessage();
-                $_SESSION['toast_class'] = "toast-danger";
+            // Check if booking was successfully updated
+            if ($stmt_cancel->affected_rows === 0) {
+                throw new Exception("Failed to cancel the booking. It may not exist or you may not have permission.");
             }
 
-            // Close statements
-            $stmt_cancel->close();
-            $stmt_free_slot->close();
+            // Free up the parking slot
+            $sql_free_slot = "UPDATE ParkingSlots SET status = 'available' WHERE slot_id = ?";
+            $stmt_free_slot = $conn->prepare($sql_free_slot);
+            $stmt_free_slot->bind_param("i", $slot_id);
+            $stmt_free_slot->execute();
 
-            // Redirect to avoid form re-submission
-            header("Location: " . $_SERVER['PHP_SELF']);
-            exit();
-        } else {
-            // Set session message for invalid cancel attempt
-            $_SESSION['message'] = "You can only cancel a booking at least 2 hours before the start time.";
+            // Commit the transaction
+            $conn->commit();
+
+            // Set the session message for successful cancellation
+            $_SESSION['message'] = "Booking canceled successfully. You can now book another slot.";
+            $_SESSION['toast_class'] = "toast-success";
+        } catch (Exception $e) {
+            // Rollback the transaction in case of error
+            $conn->rollback();
+            // Set the session message for error
+            $_SESSION['message'] = "Error canceling booking: " . $e->getMessage();
             $_SESSION['toast_class'] = "toast-danger";
-            // Redirect to avoid form re-submission
-            header("Location: " . $_SERVER['PHP_SELF']);
-            exit();
         }
+
+        // Close statements
+        $stmt_cancel->close();
+        $stmt_free_slot->close();
+
+        // Redirect to avoid form re-submission
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit();
+    } else {
+        // Set session message for invalid cancel attempt
+        $_SESSION['message'] = "You can only cancel a booking at least 1 hour before the start time.";
+        $_SESSION['toast_class'] = "toast-danger";
+        // Redirect to avoid form re-submission
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit();
     }
 }
 
@@ -172,26 +173,56 @@ $stmt_user_booking->close();
             <p><strong>Booking Date:</strong> <?php echo htmlspecialchars($current_booking['booking_date']); ?></p>
             <p><strong>Start Time:</strong> <?php echo htmlspecialchars($current_booking['start_time']); ?></p>
             <p><strong>End Time:</strong> <?php echo htmlspecialchars($current_booking['end_time']); ?></p>
-            <form action="" method="POST">
-                <input type="hidden" name="booking_id" value="<?php echo htmlspecialchars($current_booking['booking_id']); ?>">
-                <input type="hidden" name="slot_id" value="<?php echo htmlspecialchars($current_booking['slot_id']); ?>">
-                <button type="submit" name="cancel_booking" class="btn btn-danger">Cancel Booking</button>
-            </form>
+            <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#confirmCancelModal" 
+                onclick="setCancelBooking(<?php echo $current_booking['booking_id']; ?>, <?php echo $current_booking['slot_id']; ?>, '<?php echo $current_booking['start_time']; ?>')">Cancel Booking</button>
         </div>
     <?php else: ?>
         <p>You have no ongoing bookings.</p>
     <?php endif; ?>
 </div>
 
+<!-- Modal -->
+<div class="modal fade" id="confirmCancelModal" tabindex="-1" role="dialog" aria-labelledby="confirmCancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmCancelModalLabel">Confirm Cancellation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to cancel this booking?
+            </div>
+            <div class="modal-footer">
+                <form action="" method="POST">
+                    <input type="hidden" name="booking_id" id="modal_booking_id">
+                    <input type="hidden" name="slot_id" id="modal_slot_id">
+                    <input type="hidden" name="start_time" id="modal_start_time">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                    <button type="submit" name="confirm_cancel" class="btn btn-danger">Yes, Cancel</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 <script>
-    $(document).ready(function(){
-        <?php if (!empty($message)): ?>
-            $('.toast').toast('show');
-        <?php endif; ?>
-    });
+// Initialize toast
+$(document).ready(function () {
+    $('.toast').toast('show');
+});
+
+// Set the booking ID, slot ID, and start time for cancellation
+function setCancelBooking(booking_id, slot_id, start_time) {
+    document.getElementById('modal_booking_id').value = booking_id;
+    document.getElementById('modal_slot_id').value = slot_id;
+    document.getElementById('modal_start_time').value = start_time;
+}
 </script>
 </body>
 </html>

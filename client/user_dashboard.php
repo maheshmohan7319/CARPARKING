@@ -15,78 +15,64 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 $vehicle_id = $_SESSION['vehicle_id'];
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (!isset($conn) || $conn == null) {
-        die("Database connection failed. Please check your database configuration.");
-    }
+// Initialize search parameters
+$search_date = '';
+$start_time = '';
+$duration = 1; // default duration
+$slots = [];
 
-    // Handle booking form submission
-    if (isset($_POST['book_slot'])) {
-        // Check if user already has an active or cancelled booking
-        $sql_check_booking = "SELECT * FROM Bookings WHERE user_id = ? AND (status = 'booked' OR status = 'cancelled')";
-        $stmt_check = $conn->prepare($sql_check_booking);
-        $stmt_check->bind_param("i", $user_id);
-        $stmt_check->execute();
-        $result_check = $stmt_check->get_result();
+// Handle search form submission
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['search_slots'])) {
+    $search_date = $_POST['search_date'];
+    $start_time = $_POST['start_time'];
+    $duration = intval($_POST['duration']);
 
-        // Check if user has an active booking
-        $has_active_booking = false;
-        if ($result_check->num_rows > 0) {
-            while ($row = $result_check->fetch_assoc()) {
-                if ($row['status'] == 'booked') {
-                    $has_active_booking = true;
-                    break;
-                }
-            }
-        }
+    // Calculate end time based on duration
+    $end_time = date('H:i:s', strtotime("+$duration hours", strtotime($start_time)));
 
-        if ($has_active_booking) {
-            // User already has an active booking
-            $message = "You already have an active booking. Please complete it before booking another slot.";
-            $toast_class = "toast-danger"; // Change to red danger toast
-        } else {
-            // Proceed with new booking
-            $slot_id = intval($_POST['slot_id']);
-            $start_time = $_POST['start_time'];
-            $duration = intval($_POST['duration']);
-            $end_time = date('H:i:s', strtotime("+$duration hours", strtotime($start_time)));     
+    // Fetch available and booked slots based on search criteria
+    $sql = "
+        SELECT s.slot_id, s.slot_number, s.slot_type, s.status,
+               b.booking_id, b.start_time AS booked_start, b.end_time AS booked_end
+        FROM ParkingSlots s
+        LEFT JOIN Bookings b ON s.slot_id = b.slot_id AND 
+            (b.status = 'booked' AND 
+            ((b.start_time <= ? AND b.end_time > ?) OR 
+            (b.start_time < ? AND b.end_time >= ?)))
+        WHERE s.status = 'available' 
+        OR (b.booking_id IS NOT NULL)
+    ";
 
-            // Calculate total price (20 Rupees per hour)
-            $total_price = $duration * 20;
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ssss", $end_time, $start_time, $start_time, $start_time);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-            // Update slot status to 'occupied'
-            $sql_update_slot = "UPDATE ParkingSlots SET status = 'occupied' WHERE slot_id = ?";
-            $stmt = $conn->prepare($sql_update_slot);
-            $stmt->bind_param("i", $slot_id);
-
-            if ($stmt->execute()) {
-                // Insert booking record
-                $sql_insert_booking = "INSERT INTO Bookings (user_id, vehicle_id, slot_id, booking_date, start_time, end_time, status, created_at) VALUES (?, ?, ?, CURDATE(), ?, ?, 'booked', NOW())";
-                $stmt_booking = $conn->prepare($sql_insert_booking);
-                $stmt_booking->bind_param("iiiss", $user_id, $vehicle_id, $slot_id, $start_time, $end_time);
-
-                if ($stmt_booking->execute()) {
-                    $message = "Booking confirmed! Total price: ₹" . $total_price . ".";
-                    $toast_class = "toast-success"; // Green success toast
-                } else {
-                    $message = "Error booking slot: " . $stmt_booking->error;
-                }
-
-                $stmt_booking->close();
-            } else {
-                $message = "Error updating slot status: " . $stmt->error;
-            }
-
-            $stmt->close();
-        }
-
-        $stmt_check->close();
+    while ($row = $result->fetch_assoc()) {
+        $slots[] = $row; // Store available and booked slots
     }
 }
 
-// Fetch parking slots data from the database
-$sql = "SELECT slot_id, slot_number, slot_type, status FROM ParkingSlots";
-$result = $conn->query($sql);
+// Handle booking form submission
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['book_slot'])) {
+    $slot_id = $_POST['slot_id'];
+    $start_time = $_POST['start_time']; // Retrieve start time from POST data
+    $end_time = date('H:i:s', strtotime("+$duration hours", strtotime($start_time))); // Calculate end time
+
+    $sql = "INSERT INTO Bookings (user_id, vehicle_id, slot_id, start_time, end_time, status, created_at) VALUES (?, ?, ?, ?, ?, 'booked', NOW())";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("iiiss", $user_id, $vehicle_id, $slot_id, $start_time, $end_time);
+    if ($stmt->execute()) {
+        $message = "Booking confirmed!";
+    } else {
+        $message = "Error: " . $stmt->error;
+        $toast_class = "toast-danger"; // Change to red error toast
+    }
+}
+
+// Existing code for fetching parking slots without filter
+// $sql = "SELECT slot_id, slot_number, slot_type, status FROM ParkingSlots";
+// $result = $conn->query($sql);
 ?>
 
 <!DOCTYPE html>
@@ -157,13 +143,52 @@ $result = $conn->query($sql);
         .toast-header.danger-header {
             background-color: #dc3545;
         }
+        .booking-background {
+    background-image: url('https://images.unsplash.com/photo-1470880587080-599f3e4f0913?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'); 
+    background-size: cover; 
+    background-position: center; 
+    padding: 20px;
+    border-radius: 8px; 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+    color: white; 
+}
+
+    .heading-section{
+        color: whitesmoke;
+}
+
+
+
     </style>
 </head>
 <body>
-<div class="container mt-4">
+    
+
+<div class="container">
+<div class="booking-background">
     <div class="col-md-6 text-center mb-5">
-        <h2 class="heading-section">Select Parking Slot</h2>
+        <h2 class="heading-section">Search and Book Parking Slot</h2>
     </div>
+
+    <form method="POST" class="booking-form mb-4">
+        <div class="row">
+            <div class="col-md-4">
+                <label for="search_date" class="form-label">Date</label>
+                <input type="date" name="search_date" class="form-control" value="<?php echo htmlspecialchars($search_date); ?>" required>
+            </div>
+            <div class="col-md-4">
+                <label for="start_time" class="form-label">Start Time</label>
+                <input type="time" name="start_time" class="form-control" value="<?php echo htmlspecialchars($start_time); ?>" required>
+            </div>
+            <div class="col-md-4">
+                <label for="duration" class="form-label">Duration (hours)</label>
+                <input type="number" name="duration" class="form-control" value="<?php echo $duration; ?>" min="1" required>
+            </div>
+        </div>
+        <button type="submit" name="search_slots" class="btn btn-primary mt-3">Search Slots</button>
+    </form>
+</div>
+
 
     <div class="toast-container">
         <div id="notificationToast" class="toast <?php echo $toast_class; ?>" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
@@ -181,9 +206,9 @@ $result = $conn->query($sql);
         </div>
     </div>
 
-    <div class="row">
-        <?php if ($result->num_rows > 0): ?>
-            <?php while ($row = $result->fetch_assoc()): ?>
+    <div class="row mt-3">
+        <?php if (count($slots) > 0): ?>
+            <?php foreach ($slots as $row): ?>
                 <div class="col-md-2 mb-3">
                     <div class="card text-center <?php echo $row['status'] == 'available' ? 'available' : 'occupied'; ?>">
                         <div class="card-body">
@@ -197,9 +222,9 @@ $result = $conn->query($sql);
                         </div>
                     </div>
                 </div>
-            <?php endwhile; ?>
+            <?php endforeach; ?>
         <?php else: ?>
-            <p>No slots available.</p>
+            <p>No slots available for the selected date and time.</p>
         <?php endif; ?>
     </div>
 
@@ -207,30 +232,18 @@ $result = $conn->query($sql);
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="bookingModalLabel">Book Parking Slot</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <h5 class="modal-title" id="bookingModalLabel">Confirm Booking</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form id="bookingForm" method="POST" class="booking-form">
+                <form method="POST">
                     <div class="modal-body">
-                        <input type="hidden" id="slot_id" name="slot_id">
-                        <div class="mb-3">
-                            <label for="slot_number_display" class="form-label">Slot Number</label>
-                            <input type="text" id="slot_number_display" class="form-control" disabled>
-                        </div>
-                        <div class="mb-3">
-                            <label for="start_time" class="form-label">Start Time</label>
-                            <input type="time" id="start_time" name="start_time" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="duration" class="form-label">Duration (hours)</label>
-                            <input type="number" id="duration" name="duration" class="form-control" min="1" required>
-                        </div>
+                        <input type="hidden" name="slot_id" id="slot_id">
+                        <input type="hidden" name="start_time" value="<?php echo htmlspecialchars($start_time); ?>"> <!-- Hidden start time -->
+                        <p>Confirm booking for <strong id="slot_number"></strong>?</p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" name="book_slot" class="btn btn-primary">Book Slot</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" name="book_slot" class="btn btn-primary">Confirm</button>
                     </div>
                 </form>
             </div>
@@ -238,22 +251,24 @@ $result = $conn->query($sql);
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 <script>
     function selectSlot(slotId, slotNumber) {
         document.getElementById('slot_id').value = slotId;
-        document.getElementById('slot_number_display').value = slotNumber;
+        document.getElementById('slot_number').innerText = slotNumber;
     }
 
-    $(document).ready(function() {
-        $('.toast').toast('show');
+    // Show toast notification
+    document.addEventListener('DOMContentLoaded', function () {
+        const toastEl = document.getElementById('notificationToast');
+        if (toastEl) {
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        }
     });
 </script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
-
-<?php
-$conn->close();
-?>

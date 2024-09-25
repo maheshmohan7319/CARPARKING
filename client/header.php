@@ -74,7 +74,7 @@
     </div>
 </section> -->
 
-<div class="container">
+<div >
     <nav class="navbar navbar-expand-lg ftco_navbar ftco-navbar-light" id="ftco-navbar">
         <a class="navbar-brand" href="user_dashboard.php">CAR PARKING</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Toggle navigation">

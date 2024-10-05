@@ -58,59 +58,116 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRP</title>
+    <title>Login - CRP</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-k6RqeWeci5ZR/Lv4MR0sA0FfDOM90yG7Y5ZrOvAAiJxL4+4x8t5pL1X5o4LOPDfUhh2gZjGVDWMIqzLv2M42FA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #023C6E, #ff6219); /* Gradient background */
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+        .login-container {
+            max-width: 450px;
+            margin: auto;
+            padding: 40px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.9); /* Semi-transparent white */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px); /* Blur effect on background */
+            transition: transform 0.3s; /* Smooth transform effect */
+            position: relative;
+            z-index: 1;
+        }
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.1); /* Overlay effect */
+            border-radius: 15px;
+            z-index: -1;
+        }
+        .login-container h2 {
+            margin-bottom: 30px;
+            color: #023C6E; /* Primary color */
+            font-weight: bold;
+            font-size: 2rem; /* Larger heading */
+        }
+        .form-control {
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            transition: border-color 0.2s, box-shadow 0.2s; /* Smooth transition */
+        }
+        .form-control:focus {
+            border-color: #ff6219; /* Focus color */
+            box-shadow: 0 0 5px rgba(255, 98, 25, 0.5);
+        }
+        .btn-custom {
+            background-color: #ff6219; /* Button color */
+            color: white;
+            border-radius: 5px;
+            transition: background-color 0.3s, transform 0.2s; /* Smooth transition */
+        }
+        .btn-custom:hover {
+            background-color: #023C6E; /* Hover color */
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Shadow effect */
+            transform: scale(1.05); /* Slight scaling on hover */
+        }
+        .footer-link {
+            color: #023C6E;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .footer-link:hover {
+            text-decoration: underline; /* Underline on hover */
+        }
+        .alert {
+            border-radius: 5px;
+        }
+        .icon {
+            font-size: 4rem;
+            color: #ff6219; /* Logo icon color */
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-    <section class="vh-100" style="background-image: url('https://png.pngtree.com/thumb_back/fw800/background/20230902/pngtree-cars-parked-in-an-underground-parking-garage-with-yellow-image_13136555.jpg'); background-size: cover; background-position: center;">
-      <div class="container py-5 h-100">
-        <div class="row d-flex justify-content-center align-items-center h-100">
-          <div class="col col-xl-6">
-            <div class="card" style="border-radius: 1rem;">      
-                  <div class="card-body p-4 p-lg-5 text-black">
-                    <form method="POST" action="index.php">
-                    <div class="d-flex align-items-center mb-3 pb-1">
-                      <i class="fas fa-star fa-2x me-3" style="color: #ff6219;"></i> 
-                      <img src="assets/img/logo.png" alt="Logo" style="height: 40px;">
-                    </div>
-
-                      <h5 class="fw-normal mb-3 pb-3" style="letter-spacing: 1px;">Sign into your account</h5>
-
-                      <div class="form-outline mb-4">
-                        <label class="form-label" for="form2Example17">Vehicle Number*</label>
-                        <input type="text" id="form2Example17" name="email" class="form-control form-control-lg" required />
-                      </div>
-
-                      <div class="form-outline mb-4">
-                        <label class="form-label" for="form2Example27">Password</label>
-                        <input type="password" id="form2Example27" name="password" class="form-control form-control-lg" required />
-                      </div>
-
-                      <?php if (isset($error)) : ?>
-                        <p style="color: red;"><?php echo $error; ?></p>
-                      <?php endif; ?>
-
-                      <div class="pt-1 mb-4 d-flex justify-content-center">
-                        <button class="btn btn-dark btn-lg" type="submit" style="width: 60%;">Login</button>
-                      </div>
-
-                    </form>
-
-                    <div class="d-flex justify-content-center">
-                        <p class="text-center m-0">Don't have an account? <a href="registration.php" class="btn btn-link">Register Now</a></p>
-                      </div>
-
-                  </div>
+    <div class="container vh-100 d-flex justify-content-center align-items-center">
+        <div class="login-container">
+            <i class="fas fa-car icon"></i> <!-- Car icon -->
+            <h2 class="text-center">Welcome Back!</h2>
+            <form method="POST" action="index.php">
+                <div class="mb-4">
+                    <label for="formVehicleNumber" class="form-label">Vehicle Number*</label>
+                    <input type="text" id="formVehicleNumber" name="email" class="form-control" required />
                 </div>
-            </div>        
+                <div class="mb-4">
+                    <label for="formPassword" class="form-label">Password</label>
+                    <input type="password" id="formPassword" name="password" class="form-control" required />
+                </div>
+                <?php if (isset($error)) : ?>
+                    <div class="alert alert-danger" role="alert">
+                        <?php echo $error; ?>
+                    </div>
+                <?php endif; ?>
+                <div class="d-grid">
+                    <button class="btn btn-custom" type="submit">Login</button>
+                </div>
+            </form>
+            <div class="text-center mt-3">
+                <p class="m-0">Don't have an account? <a href="registration.php" class="footer-link">Register Now</a></p>
+            </div>
         </div>
-      </div>
-    </section>
+    </div>
 </body>
 </html>
+

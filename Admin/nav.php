@@ -1,5 +1,6 @@
 <?php
 include '../db_connect.php';
+ob_start();
 
 
 $user_count_query = "SELECT COUNT(*) AS user_count FROM users";

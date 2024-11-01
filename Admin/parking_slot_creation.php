@@ -107,7 +107,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <?php endif; ?>
                             <form action="parking_slot_creation.php" method="POST">
                                 <div class="form-group">
-                                    <label for="slot_number">Slot Number</label>
+                                    <label for="slot_number">Slot Name</label>
                                     <input type="text" class="form-control" id="slot_number" name="slot_number" value="<?php echo htmlspecialchars($slot_number); ?>" required>
                                 </div>
                                 <div class="form-group">

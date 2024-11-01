@@ -3,43 +3,63 @@ include '../db_connect.php';
 include 'header.php'; 
 include 'nav.php';
 
-// Check connection
-if ($connection->connect_error) {
-    die("Connection failed: " . $connection->connect_error);
-}
 
-// Fetch all bookings
 $sql = "SELECT booking_id, user_id, vehicle_id, slot_id, booking_date, start_time, end_time, status, created_at FROM bookings";
-$result = $connection->query($sql);
+$stmt = $conn->prepare($sql);
+$stmt->execute();
+$result = $stmt->get_result(); 
+
+$stmt->close();
+$conn->close();
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Manage Bookings</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title>CRP - Slot List</title>
+    <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
+    <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
+    <link rel="stylesheet" href="../assets/css/ready.css">
+    <link rel="stylesheet" href="../assets/css/demo.css">
 </head>
 <body>
-    <div class="container mt-5">
-        <h2>Booking Management</h2>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Booking ID</th>
-                    <th>User ID</th>
-                    <th>Vehicle ID</th>
-                    <th>Slot ID</th>
-                    <th>Booking Date</th>
-                    <th>Start Time</th>
-                    <th>End Time</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
+    <div class="wrapper">
+        <div class="main-panel">
+            <div class="content">
+                <div class="container-fluid">
+                    <h4 class="page-title">Booking List</h4>
+                   
+                    <div class="card">
+                        <div class="card-body">
+                            <?php if (!empty($message)) : ?>
+                                <div id="messageAlert" class="alert alert-success alert-dismissible fade show" role="alert">
+                                    <?php echo htmlspecialchars($message); ?>
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            <?php endif; ?>
+                       
+                            <?php if ($result->num_rows > 0) : ?>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                        <th>Booking ID</th>
+                                        <th>User ID</th>
+                                        <th>Vehicle ID</th>
+                                        <th>Slot ID</th>
+                                        <th>Booking Date</th>
+                                        <th>Start Time</th>
+                                        <th>End Time</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+
+                                        </tr>
+                                    </thead>
+                                    <tbody>
                 <?php
                 if ($result->num_rows > 0) {
                     while($row = $result->fetch_assoc()) {
@@ -70,16 +90,36 @@ $result = $connection->query($sql);
                 }
                 ?>
             </tbody>
-        </table>
+
+                                </table>
+                            </div>
+                        <?php else : ?>
+                            <p>No Slot found.</p>
+                        <?php endif; ?>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Bootstrap JS and dependencies -->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="../assets/js/core/jquery.3.2.1.min.js"></script>
+    <script src="../assets/js/plugin/jquery-ui-1.12.1.custom/jquery-ui.min.js"></script>
+    <script src="../assets/js/core/popper.min.js"></script>
+    <script src="../assets/js/core/bootstrap.min.js"></script>
+    <script src="../assets/js/plugin/chartist/chartist.min.js"></script>
+    <script src="../assets/js/plugin/chartist/plugin/chartist-plugin-tooltip.min.js"></script>
+    <script src="../assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
+    <script src="../assets/js/plugin/bootstrap-toggle/bootstrap-toggle.min.js"></script>
+    <script src="../assets/js/plugin/jquery-mapael/jquery.mapael.min.js"></script>
+    <script src="../assets/js/plugin/jquery-mapael/maps/world_countries.min.js"></script>
+    <script src="../assets/js/plugin/chart-circle/circles.min.js"></script>
+    <script src="../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
+    <script src="../assets/js/ready.min.js"></script>
 </body>
 </html>
 
-<?php
-$connection->close();
-?>
+
+
+

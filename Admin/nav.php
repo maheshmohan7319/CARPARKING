@@ -2,11 +2,18 @@
 include '../db_connect.php';
 ob_start();
 
+session_start(); // Ensure the session is started
 
-$user_count_query = "SELECT COUNT(*) AS user_count FROM users";
-$user_count_result = $conn->query($user_count_query);
+$logged_in_user_id = $_SESSION['user_id']; 
+
+
+$user_count_query = "SELECT COUNT(*) AS user_count FROM users WHERE user_id != ?";
+$stmt = $conn->prepare($user_count_query);
+$stmt->bind_param("i", $logged_in_user_id);
+$stmt->execute();
+$user_count_result = $stmt->get_result();
 $user_count = $user_count_result->fetch_assoc()['user_count'];
-
+$stmt->close();
 
 $vehicle_count_query = "SELECT COUNT(*) AS vehicle_count FROM vehicles";
 $vehicle_count_result = $conn->query($vehicle_count_query);
@@ -15,6 +22,11 @@ $vehicle_count = $vehicle_count_result->fetch_assoc()['vehicle_count'];
 $slot_count_query = "SELECT COUNT(*) AS slot_count FROM parkingslots";
 $slot_count_result = $conn->query($slot_count_query);
 $slot_count = $slot_count_result->fetch_assoc()['slot_count'];
+
+$book_count_query = "SELECT COUNT(*) AS book_count FROM bookings";
+$book_count_result = $conn->query($book_count_query);
+$book_count = $book_count_result->fetch_assoc()['book_count'];
+
 
 
 
@@ -62,10 +74,10 @@ $slot_count = $slot_count_result->fetch_assoc()['slot_count'];
                 </a>
             </li>
             <li class="nav-item">
-                <a href="bookins.php">
+                <a href="booking.php">
                     <i class="la la-calendar-check-o"></i>
                     <p>bookings</p>
-                    <span class="badge badge-count"><?php echo $slot_count; ?></span>
+                    <span class="badge badge-count"><?php echo $book_count; ?></span>
                 </a>
             </li>
         </ul>

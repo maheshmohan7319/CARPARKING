@@ -85,16 +85,14 @@ $conn->close();
                         </td>";
                         echo "</tr>";
                     }
-                } else {
-                    echo "<tr><td colspan='9'>No bookings found</td></tr>";
-                }
+                } 
                 ?>
             </tbody>
 
                                 </table>
                             </div>
                         <?php else : ?>
-                            <p>No Slot found.</p>
+                            <p>No bookings found.</p>
                         <?php endif; ?>
 
                         </div>

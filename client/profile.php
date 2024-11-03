@@ -27,23 +27,68 @@ $message = "";
 $error = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (!empty($_POST['username']) && !empty($_POST['full_name'])) {
-        $username = $_POST['username'];
+    if (!empty($_POST['full_name'])) {
         $full_name = $_POST['full_name'];
-
-        $update_query = "UPDATE users SET username=?, full_name=? WHERE user_id=?";
-        $update_stmt = $conn->prepare($update_query);
-        $update_stmt->bind_param("ssi", $username, $full_name, $user_id);
-
-        if ($update_stmt->execute()) {
+        $current_password = $_POST['current_password'] ?? '';
+        $new_password = $_POST['new_password'] ?? '';
+        $confirm_password = $_POST['confirm_password'] ?? '';
+        
+        // Start transaction
+        $conn->begin_transaction();
+        
+        try {
+            // Always update full name
+            $update_query = "UPDATE users SET full_name=? WHERE user_id=?";
+            $update_stmt = $conn->prepare($update_query);
+            $update_stmt->bind_param("si", $full_name, $user_id);
+            $update_stmt->execute();
+            
+            // If password fields are filled, update password
+            if (!empty($current_password) && !empty($new_password) && !empty($confirm_password)) {
+                // Verify current password
+                $verify_query = "SELECT password FROM users WHERE user_id = ?";
+                $verify_stmt = $conn->prepare($verify_query);
+                $verify_stmt->bind_param("i", $user_id);
+                $verify_stmt->execute();
+                $result = $verify_stmt->get_result();
+                $user_data = $result->fetch_assoc();
+                
+                if (!password_verify($current_password, $user_data['password'])) {
+                    throw new Exception("Current password is incorrect.");
+                }
+                
+                // Verify new passwords match
+                if ($new_password !== $confirm_password) {
+                    throw new Exception("New passwords do not match.");
+                }
+                
+                // Validate password strength (at least 8 characters)
+                if (strlen($new_password) < 8) {
+                    throw new Exception("New password must be at least 8 characters long.");
+                }
+                
+                // Hash new password and update
+                $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+                $password_query = "UPDATE users SET password=? WHERE user_id=?";
+                $password_stmt = $conn->prepare($password_query);
+                $password_stmt->bind_param("si", $hashed_password, $user_id);
+                $password_stmt->execute();
+            }
+            
+            // Commit transaction
+            $conn->commit();
             $message = "Profile updated successfully.";
-            $stmt->execute(); // Refresh user data after update
+            
+            // Refresh user data
+            $stmt->execute();
             $user = $stmt->get_result()->fetch_assoc();
-        } else {
-            $error = "Error updating profile: " . $conn->error;
+            
+        } catch (Exception $e) {
+            $conn->rollback();
+            $error = $e->getMessage();
         }
     } else {
-        $error = "All fields are required.";
+        $error = "Full name is required.";
     }
 }
 ?>
@@ -88,6 +133,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             right: 1rem;
             z-index: 1050;
         }
+        .password-section {
+            border-top: 1px solid #dee2e6;
+            margin-top: 20px;
+            padding-top: 20px;
+        }
     </style>
     <script>
         function toggleEditForm() {
@@ -114,20 +164,45 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <form method="post" action="">
                 <div class="form-group text-left">
                     <label for="username">Username</label>
-                    <input type="text" class="form-control" id="username" name="username" value="<?php echo htmlspecialchars($user['username']); ?>" required>
+                    <input type="text" class="form-control" id="username" value="<?php echo htmlspecialchars($user['username']); ?>" disabled>
+                    <small class="form-text text-muted">Username cannot be changed</small>
                 </div>
                 <div class="form-group text-left">
                     <label for="full_name">Full Name</label>
                     <input type="text" class="form-control" id="full_name" name="full_name" value="<?php echo htmlspecialchars($user['full_name']); ?>" required>
                 </div>
+
+                <!-- Password Change Section -->
+                <div class="password-section text-left">
+                    <h5 class="mb-3">Change Password</h5>
+                    <div class="form-group">
+                        <label for="current_password">Current Password</label>
+                        <input type="password" class="form-control" id="current_password" name="current_password">
+                    </div>
+                    <div class="form-group">
+                        <label for="new_password">New Password</label>
+                        <input type="password" class="form-control" id="new_password" name="new_password">
+                        <small class="form-text text-muted">Password must be at least 8 characters long</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm_password">Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                    </div>
+                </div>
+
                 <button type="submit" class="btn btn-success mt-3">Save Changes</button>
                 <button type="button" class="btn btn-secondary mt-3" onclick="window.location.reload();">Cancel</button>
             </form>
         </div>
+
+        <?php if ($error): ?>
+        <div class="alert alert-danger mt-3" role="alert">
+            <?php echo htmlspecialchars($error); ?>
+        </div>
+        <?php endif; ?>
     </div>
 </div>
 
-<!-- Toast Container -->
 <!-- Toast Container -->
 <div class="toast-container">
     <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
@@ -142,7 +217,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </div>
 </div>
-
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>

@@ -3,48 +3,39 @@ include '../db_connect.php';
 include 'header.php'; 
 include 'nav.php';
 
-session_start();
-
 $message = '';
 if (isset($_SESSION['message'])) {
     $message = $_SESSION['message'];
     unset($_SESSION['message']); 
 }
 
-// Check if delete action is triggered
 if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']);
-    
-    try {
-        $stmt = $conn->prepare("DELETE FROM parkingslots WHERE slot_id = ?");
-        $stmt->bind_param("i", $id);
-        
-        if ($stmt->execute()) {
-            $_SESSION['message'] = "Slot deleted successfully.";
-        } else {
-            $_SESSION['message'] = "Error deleting slot: " . $stmt->error;
-        }
-        
-        $stmt->close();
-        
-        // Clean redirect using PHP header
-        header("Location: parking_slot.php");
-        exit();
-        
-    } catch (Exception $e) {
-        $_SESSION['message'] = "Error: " . $e->getMessage();
+
+    $stmt = $conn->prepare("DELETE FROM parkingslots WHERE slot_id = ?");
+    $stmt->bind_param("i", $id);
+
+    if ($stmt->execute()) {
+        $_SESSION['message'] = "Slot deleted successfully.";
+    } else {
+        $_SESSION['message'] = "Error deleting slot: " . $conn->error;
     }
+
+    $stmt->close();
+    $conn->close();
+
+    header("Location: parking_slot.php");
+    exit();
 }
 
-// Fetch all parking slots
-$sql = "SELECT * FROM parkingslots ORDER BY slot_number";
+$sql = "SELECT * FROM parkingslots";
 $result = $conn->query($sql);
 ?>
 <!DOCTYPE html>
 <html>
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-    <title>CRP - Slot List</title>
+    <title>CPM - Slots</title>
     <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
@@ -56,9 +47,9 @@ $result = $conn->query($sql);
         <div class="main-panel">
             <div class="content">
                 <div class="container-fluid">
-                    <h4 class="page-title">Slot List</h4>
+                    <h4 class="page-title">Slots</h4>
                     <div class="d-flex justify-content-end mb-3">
-                        <a href="parking_slot_creation.php" class="btn btn-dark btn-lg">Create Slot</a>
+                        <a href="parking_slot_creation.php" class="btn btn-dark btn-lg">Add Slot</a>
                     </div>
 
                     <div class="card">
@@ -70,23 +61,16 @@ $result = $conn->query($sql);
                                         <span aria-hidden="true">&times;</span>
                                     </button>
                                 </div>
-                                <script>
-                                    setTimeout(function() {
-                                        document.getElementById('messageAlert').style.display = 'none';
-                                    }, 3000);
-                                </script>
                             <?php endif; ?>
                        
-                            <?php if ($result && $result->num_rows > 0) : ?>
+                            <?php if ($result->num_rows > 0) : ?>
                             <div class="table-responsive">
                                 <table class="table table-striped">
                                     <thead>
                                         <tr>
                                             <th>Sl.No</th>
-                                            <th>Slot Name</th>
-                                            <th>Slot Type</th>
-                                            <th>Status</th>
-                                            <th>Action</th>
+                                            <th>Slot Number</th>
+                                            <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -96,22 +80,19 @@ $result = $conn->query($sql);
                                             <tr>
                                                 <td><?php echo $counter++; ?></td>
                                                 <td><?php echo htmlspecialchars($row['slot_number']); ?></td>
-                                                <td><?php echo htmlspecialchars($row['slot_type']); ?></td>
-                                                <td><?php echo htmlspecialchars($row['status']); ?></td>
                                                 <td>
-                                                    <a href="parking_slot_creation.php?id=<?php echo htmlspecialchars($row['slot_id']); ?>" 
-                                                       class="btn btn-warning btn-sm">Edit</a>
-                                                    <button onclick="deleteSlot(<?php echo htmlspecialchars($row['slot_id']); ?>)" 
-                                                            class="btn btn-danger btn-sm">Delete</button>
+                                                    <a href="parking_slot_creation.php?id=<?php echo htmlspecialchars($row['slot_id']); ?>" class="btn btn-warning btn-sm">Edit</a>
+                                                    <a href="parking_slot.php?delete=<?php echo htmlspecialchars($row['slot_id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this slot?');">Delete</a>
                                                 </td>
                                             </tr>
                                         <?php endwhile; ?>
                                     </tbody>
                                 </table>
                             </div>
-                            <?php else : ?>
-                                <p>No Slot found.</p>
-                            <?php endif; ?>
+                        <?php else : ?>
+                            <p>No slot found.</p>
+                        <?php endif; ?>
+
                         </div>
                     </div>
                 </div>
@@ -132,24 +113,17 @@ $result = $conn->query($sql);
     <script src="../assets/js/plugin/chart-circle/circles.min.js"></script>
     <script src="../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
     <script src="../assets/js/ready.min.js"></script>
-    
+
     <script>
-    function deleteSlot(id) {
-        if (confirm('Are you sure you want to delete this slot?')) {
-            // Use AJAX to handle the deletion
-            $.ajax({
-                url: 'parking_slot.php?delete=' + id,
-                method: 'GET',
-                success: function(response) {
-                    // Reload the page with clean URL
-                    window.location.href = 'parking_slot.php';
-                },
-                error: function() {
-                    alert('Error deleting slot. Please try again.');
-                }
-            });
-        }
-    }
+        // Hide message after 2 seconds
+        $(document).ready(function() {
+            var messageAlert = $('#messageAlert');
+            if (messageAlert.length) {
+                setTimeout(function() {
+                    messageAlert.alert('close');
+                }, 2000); // 2000 milliseconds = 2 seconds
+            }
+        });
     </script>
 </body>
 </html>

@@ -3,7 +3,7 @@ include '../db_connect.php';
 include 'header.php'; 
 include 'nav.php';
 
-session_start(); // Ensure the session is started
+session_start(); 
 
 $logged_in_user_id = $_SESSION['user_id']; 
 
@@ -15,20 +15,39 @@ if (isset($_SESSION['message'])) {
 
 if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']);
+    
+  
+    $conn->begin_transaction();
 
-    $stmt = $conn->prepare("DELETE FROM users WHERE user_id = ?");
-    $stmt->bind_param("i", $id);
+    try {
 
-    if ($stmt->execute()) {
-        $_SESSION['message'] = "User deleted successfully.";
-    } else {
-        $_SESSION['message'] = "Error deleting class: " . $conn->error;
+        $stmt = $conn->prepare("DELETE FROM vehicles WHERE user_id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $stmt->close();
+
+      
+        $stmt = $conn->prepare("DELETE FROM users WHERE user_id = ?");
+        $stmt->bind_param("i", $id);
+        
+        if ($stmt->execute()) {
+            $_SESSION['message'] = "User and corresponding vehicle details deleted successfully.";
+        } else {
+            throw new Exception("Error deleting user: " . $conn->error);
+        }
+        
+        $stmt->close();
+
+
+        $conn->commit();
+    } catch (Exception $e) {
+        $conn->rollback();
+        $_SESSION['message'] = $e->getMessage();
     }
 
-    $stmt->close();
     $conn->close();
 
-    header("Location: users.php");
+    header("Location: user.php");
     exit();
 }
 
@@ -41,7 +60,7 @@ $result = $stmt->get_result();
 <html>
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-    <title>CRP - User List</title>
+    <title>CPM - Users</title>
     <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
@@ -53,7 +72,7 @@ $result = $stmt->get_result();
         <div class="main-panel">
             <div class="content">
                 <div class="container-fluid">
-                    <h4 class="page-title">User List</h4>
+                    <h4 class="page-title">Users</h4>
                     <div class="card">
                         <div class="card-body">
                             <?php if (!empty($message)) : ?>
@@ -75,7 +94,6 @@ $result = $stmt->get_result();
                                             <th>Full Name</th>
                                             <th>Email</th>
                                             <th>Role</th>
-                                            <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>

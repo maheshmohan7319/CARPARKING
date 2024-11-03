@@ -1,22 +1,22 @@
 <?php
-session_start();  // Start session at the beginning
+session_start();  
 include '../db_connect.php';
 include 'header.php'; 
 include 'nav.php';
 
 $message = '';
 $slot_number = '';
-$slot_type = 'car'; // default value
-$status = 'available'; // default value
+$slot_type = 'car'; 
+$status = 'available'; 
 $slot_id = null;
 $is_edit = false;
 
-// Check if an ID is provided for editing an existing slot
+
 if (isset($_GET['id'])) {
     $slot_id = intval($_GET['id']);
     $is_edit = true;
 
-    // Fetch existing slot data for editing
+ 
     $stmt = $conn->prepare("SELECT slot_number, slot_type, status FROM parkingslots WHERE slot_id = ?");
     $stmt->bind_param("i", $slot_id);
     $stmt->execute();
@@ -25,7 +25,7 @@ if (isset($_GET['id'])) {
     $stmt->close();
 }
 
-// Handle form submission
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $slot_number = $_POST['slot_number'];
     $slot_type = $_POST['slot_type'];
@@ -33,7 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $slot_id = $_POST['slot_id'] ?? null;
     $is_edit = isset($_POST['is_edit']) && $_POST['is_edit'] === '1';
 
-    // Check for existing slot with the same number
+    
     $stmt = $conn->prepare("SELECT COUNT(*) FROM parkingslots WHERE slot_number = ? AND (slot_id != ? OR ? IS NULL)");
     $stmt->bind_param("ssi", $slot_number, $slot_id, $slot_id);
     $stmt->execute();
@@ -45,7 +45,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $message = "Slot number already exists. Please choose a different number.";
     } else {
         if ($is_edit) {
-            // Update existing slot
             $stmt = $conn->prepare("UPDATE parkingslots SET slot_number = ?, slot_type = ?, status = ? WHERE slot_id = ?");
             $stmt->bind_param("sssi", $slot_number, $slot_type, $status, $slot_id);
 
@@ -59,7 +58,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             $stmt->close();
         } else {
-            // Insert new slot
             $stmt = $conn->prepare("INSERT INTO parkingslots (slot_number, slot_type, status) VALUES (?, ?, ?)");
             $stmt->bind_param("sss", $slot_number, $slot_type, $status);
 
@@ -82,7 +80,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html>
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-    <title>LMS - Parking Slot Management</title>
+    <title>CMS - Parking Slot Management</title>
     <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
@@ -120,9 +118,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <div class="form-group">
                                     <label for="status">Status</label>
                                     <select class="form-control" id="status" name="status">
-                                        <option value="available" <?php echo $status == 'available' ? 'selected' : ''; ?>>Available</option>
-                                        <option value="occupied" <?php echo $status == 'occupied' ? 'selected' : ''; ?>>Occupied</option>
-                                        <option value="reserved" <?php echo $status == 'reserved' ? 'selected' : ''; ?>>Reserved</option>
+                                        <option value="available" <?php echo $status == 'available' ? 'selected' : ''; ?>>available</option>
+                                        <option value="unavailable" <?php echo $status == 'unavailable' ? 'selected' : ''; ?>>unavailable</option>
                                     </select>
                                 </div>
                                 <input type="hidden" name="slot_id" value="<?php echo htmlspecialchars($slot_id); ?>">

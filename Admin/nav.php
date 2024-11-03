@@ -1,15 +1,12 @@
 <?php
 include '../db_connect.php';
 ob_start();
-
-session_start(); // Ensure the session is started
-
-$logged_in_user_id = $_SESSION['user_id']; 
-
+session_start();
+$user_id = $_SESSION['user_id'];
 
 $user_count_query = "SELECT COUNT(*) AS user_count FROM users WHERE user_id != ?";
 $stmt = $conn->prepare($user_count_query);
-$stmt->bind_param("i", $logged_in_user_id);
+$stmt->bind_param("i", $user_id);
 $stmt->execute();
 $user_count_result = $stmt->get_result();
 $user_count = $user_count_result->fetch_assoc()['user_count'];
@@ -27,61 +24,46 @@ $book_count_query = "SELECT COUNT(*) AS book_count FROM bookings";
 $book_count_result = $conn->query($book_count_query);
 $book_count = $book_count_result->fetch_assoc()['book_count'];
 
-
-
-
+$current_page = basename($_SERVER['PHP_SELF']);
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-    <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
-    <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
-    <link rel="stylesheet" href="../assets/css/ready.css">
-    <link rel="stylesheet" href="../assets/css/demo.css">
-</head>
-<body>
 <div class="sidebar">
     <div class="scrollbar-inner sidebar-wrapper">
         <ul class="nav">
-            <li class="nav-item active">
-                <a href="admin_dashboard.php">
-                    <i class="la la-home"></i>
-                    <p>Home</p>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="user.php">
+        <li class="nav-item <?php echo $current_page == 'admin_dashboard.php' ? 'active' : ''; ?>">
+    <a href="admin_dashboard.php" style="display: flex; align-items: center;">
+        <i class="la la-home"></i>
+        <p style="font-size: 18px; margin: 0 10px;">Home</p>
+    </a>
+</li>
+            <li class="nav-item <?php echo $current_page == 'user.php' ? 'active' : ''; ?>">
+                <a href="user.php" style="display: flex; justify-content: space-between; align-items: center;">
                     <i class="la la-user"></i>
-                    <p>Users</p>
-                    <span class="badge badge-count"><?php echo $user_count; ?></span>
+                    <p style="font-size: 18px; margin: 0;">Users</p>
+                    <span class="badge badge-count" style="font-size: 18px;"><?php echo $user_count; ?></span>
                 </a>
             </li>
-            <li class="nav-item">
-                <a href="vehicle.php">
+            <li class="nav-item <?php echo $current_page == 'vehicle.php' ? 'active' : ''; ?>">
+                <a href="vehicle.php" style="display: flex; justify-content: space-between; align-items: center;">
                     <i class="la la-car"></i>
-                    <p>Vehicle</p>
-                    <span class="badge badge-count"><?php echo $vehicle_count; ?></span>
+                    <p style="font-size: 18px; margin: 0;">Vehicle</p>
+                    <span class="badge badge-count" style="font-size: 18px;"><?php echo $vehicle_count; ?></span>
                 </a>
             </li>
-            <li class="nav-item">
-                <a href="parking_slot.php">
-                    <i class="la la-calendar-check-o"></i>
-                    <p>Slot</p>
-                    <span class="badge badge-count"><?php echo $slot_count; ?></span>
+            <li class="nav-item <?php echo $current_page == 'parking_slot.php' ? 'active' : ''; ?>">
+                <a href="parking_slot.php" style="display: flex; justify-content: space-between; align-items: center;">
+                    <i class="la la-comment"></i>
+                    <p style="font-size: 18px; margin: 0;">Slot</p>
+                    <span class="badge badge-count" style="font-size: 18px;"><?php echo $slot_count; ?></span>
                 </a>
             </li>
-            <li class="nav-item">
-                <a href="booking.php">
-                    <i class="la la-calendar-check-o"></i>
-                    <p>bookings</p>
-                    <span class="badge badge-count"><?php echo $book_count; ?></span>
+            <li class="nav-item <?php echo $current_page == 'booking.php' ? 'active' : ''; ?>">
+                <a href="booking.php" style="display: flex; justify-content: space-between; align-items: center;">
+                    <i class="la la-book"></i>
+                    <p style="font-size: 18px; margin: 0;">Bookings</p>
+                    <span class="badge badge-count" style="font-size: 18px;"><?php echo $book_count; ?></span>
                 </a>
             </li>
         </ul>
     </div>
 </div>
-</body>
-</html>

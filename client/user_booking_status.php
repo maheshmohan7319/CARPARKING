@@ -27,7 +27,7 @@ if (isset($_SESSION['message'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_cancel'])) {
     $booking_id = $_POST['booking_id'];
 
-    $sql_cancel = "UPDATE Bookings SET status = 'canceled' WHERE booking_id = ? AND user_id = ?";
+    $sql_cancel = "UPDATE Bookings SET status = 'cancelled' WHERE booking_id = ? AND user_id = ?";
     $stmt_cancel = $conn->prepare($sql_cancel);
     $stmt_cancel->bind_param("ii", $booking_id, $user_id);
 

@@ -235,6 +235,90 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['book_slot'])) {
                 <p class="text-center">Please search for available slots using the form above.</p>
             </div>
         <?php endif; ?>
+       
+        <div class="container my-5">
+    <h2 class="text-center mb-4">Our Premium Cars</h2>
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 shadow">
+                <img src="https://cdn.pixabay.com/photo/2023/02/07/17/49/supercar-7774683_640.jpg" class="card-img-top" alt="Supercar">
+                <div class="card-body">
+                    <h5 class="card-title">Luxury Parking 1</h5>
+                    <p class="card-text">Secure your supercar in our premium parking facility, designed for high-end vehicles.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 shadow">
+                <img src="https://m.media-amazon.com/images/I/61Rx9tHudUL._AC_UF1000,1000_QL80_.jpg" class="card-img-top" alt="Supercar">
+                <div class="card-body">
+                    <h5 class="card-title">Luxury Parking 2</h5>
+                    <p class="card-text">Enjoy exclusive access to our valet service, ensuring your car is always ready to go.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 shadow">
+                <img src="https://assets.architecturaldigest.in/photos/60004a09d68a278e29c86a11/16:9/w_2560%2Cc_limit/feature6-1366x768.jpg" class="card-img-top" alt="Supercar">
+                <div class="card-body">
+                    <h5 class="card-title">Luxury Parking 3</h5>
+                    <p class="card-text">State-of-the-art security features to keep your premium car safe and sound.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 shadow">
+                <img src="https://www.lamborghini.com/sites/it-en/files/DAM/lamborghini/facelift_2019/homepage/families-gallery/2023/revuelto/revuelto_m.png" class="card-img-top" alt="Supercar">
+                <div class="card-body">
+                    <h5 class="card-title">Luxury Parking 4</h5>
+                    <p class="card-text">Premium parking spaces equipped with climate control to protect your vehicle.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="text-center my-4">Why Choose Us?</h3>
+    <div class="container my-5">
+    <div class="row text-center">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow">
+                <div class="d-flex justify-content-center mt-4">
+                    <img src="https://png.pngtree.com/png-vector/20220721/ourmid/pngtree-fast-service-vector-icon-express-start-service-vector-png-image_32829502.png" class="rounded-circle" alt="Fast Service" style="width: 100px; height: 100px; object-fit: cover;">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Fast Service</h5>
+                    <p class="card-text">We ensure a quick and seamless booking experience.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow">
+                <div class="d-flex justify-content-center mt-4">
+                    <img src="https://img.freepik.com/free-vector/pink-best-price-sticker-with-words-best-price-displayed-prominently_90220-2968.jpg" class="rounded-circle" alt="Affordable Prices" style="width: 100px; height: 100px; object-fit: cover;">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Affordable Prices</h5>
+                    <p class="card-text">Competitive rates for high-quality service.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow">
+                <div class="d-flex justify-content-center mt-4">
+                    <img src="https://img.freepik.com/premium-vector/24-7-support-icon-online-support-twenty-four-seven-vector_608466-89.jpg" class="rounded-circle" alt="24/7 Support" style="width: 100px; height: 100px; object-fit: cover;">
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">24/7 Support</h5>
+                    <p class="card-text">We are here to assist you anytime, day or night.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+
     </div>
 </div>
 

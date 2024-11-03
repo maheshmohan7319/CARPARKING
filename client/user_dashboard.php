@@ -91,9 +91,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['search_slots'])) {
     }
 }
 
-// Booking submission logic remains the same
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['book_slot'])) {
-    // ... (keep existing booking logic)
+    // Collect booking details from the form
+    $user_id = $_SESSION['user_id'];
+    $vehicle_id = $_SESSION['vehicle_id'] ?? null;
+    $slot_id = $_POST['slot_id'];
+    $booking_date = $search_date;
+    $start_time = $_POST['start_time'];
+    $duration = intval($_POST['duration']);
+    $end_time = date('H:i:s', strtotime("+$duration hours", strtotime($start_time)));
+    $status = 'booked'; // Default status for a new booking
+
+    // Insert booking into the Bookings table
+    $sql_insert = "
+        INSERT INTO Bookings (user_id, vehicle_id, slot_id, booking_date, start_time, end_time, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ";
+    
+    $stmt_insert = $conn->prepare($sql_insert);
+    $stmt_insert->bind_param("iiissss", $user_id, $vehicle_id, $slot_id, $booking_date, $start_time, $end_time, $status);
+
+    if ($stmt_insert->execute()) {
+        $message = "Booking successfully created!";
+        $toast_class = "toast-success";
+    } else {
+        $message = "Failed to create booking. Please try again.";
+        $toast_class = "toast-danger";
+    }
+
+    $stmt_insert->close();
 }
 ?>
 

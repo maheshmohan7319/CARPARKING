@@ -98,7 +98,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['book_slot'])) {
     $slot_id = $_POST['slot_id'];
     $booking_date = $search_date;
     $start_time = $_POST['start_time'];
-    $duration = intval($_POST['duration']);
+    $duration = isset($_POST['duration']) ? intval($_POST['duration']) : 1; 
     $end_time = date('H:i:s', strtotime("+$duration hours", strtotime($start_time)));
     $status = 'booked'; // Default status for a new booking
 

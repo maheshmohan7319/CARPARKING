@@ -1,7 +1,11 @@
 <?php
+session_start(); 
 include '../db_connect.php';
 include 'header.php'; 
 include 'nav.php';
+
+
+$logged_in_user_id = $_SESSION['user_id'];
 
 $message = '';
 if (isset($_SESSION['message'])) {

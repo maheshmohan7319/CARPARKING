@@ -1,9 +1,9 @@
 <?php
+session_start(); 
 include '../db_connect.php';
 include 'header.php'; 
 include 'nav.php';
 
-session_start(); 
 
 $logged_in_user_id = $_SESSION['user_id']; 
 

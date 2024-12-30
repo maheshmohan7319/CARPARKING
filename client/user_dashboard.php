@@ -101,6 +101,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['book_slot'])) {
         SELECT booking_id 
         FROM Bookings 
         WHERE user_id = ? 
+         AND status NOT IN ('completed', 'cancelled') 
         AND booking_date = ? 
         AND ((start_time < ? AND end_time > ?) 
             OR (start_time < ? AND end_time > ?)
@@ -165,30 +166,85 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['book_slot'])) {
     <title>Parking Slot Booking</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
+    .toast-message {
+        display: <?php echo $message ? 'block' : 'none'; ?>;
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        padding: 15px 25px;
+        border-radius: 8px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        font-size: 1rem;
+        font-weight: 500;
+        animation: slideIn 0.5s ease-out, fadeOut 0.5s ease-in 3s forwards;
+    }
+
+    /* Success Toast */
+    .toast-success {
+        background-color: #28a745;
+        color: white;
+        border: 1px solid #218838;
+    }
+
+    /* Warning Toast */
+    .toast-warning {
+        background-color: #ffc107;
+        color: black;
+        border: 1px solid #e0a800;
+    }
+
+    /* Danger Toast */
+    .toast-danger {
+        background-color: #dc3545;
+        color: white;
+        border: 1px solid #c82333;
+    }
+
+    .toast-message .close {
+        color: white;
+        opacity: 0.8;
+        font-size: 1.2rem;
+        line-height: 1;
+        cursor: pointer;
+        margin-left: 15px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
         .toast-message {
-            display: <?php echo $message ? 'block' : 'none'; ?>;
-            position: fixed;
-            top: 20px;
+            width: calc(100% - 40px);
             right: 20px;
-            z-index: 9999;
+            font-size: 0.9rem;
         }
-        .slot-card {
-            transition: all 0.3s;
-            border-width: 2px;
+    }
+
+    /* Animations */
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
         }
-        .slot-card.available {
-            border-color: #28a745;
-            background-color: #f8fff8;
+        to {
+            transform: translateX(0);
+            opacity: 1;
         }
-        .slot-card.unavailable {
-            border-color: #dc3545;
-            background-color: #fff8f8;
+    }
+
+    @keyframes fadeOut {
+        to {
+            opacity: 0;
         }
-        .booking-time {
-            font-size: 0.9em;
-            color: #666;
-        }
-    </style>
+    }
+
+    /* For Better Visibility on Dark Backgrounds */
+    body.dark-mode .toast-success,
+    body.dark-mode .toast-warning,
+    body.dark-mode .toast-danger {
+        box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.2);
+    }
+</style>
+
 </head>
 <body class="bg-light">
 
